@@ -1,0 +1,36 @@
+package org.grouplens.lenskit.webapp.dto;
+
+import org.grouplens.common.dto.Dto;
+
+public class UserPurchasesDto extends Dto {
+
+	@XmlAttribute
+	public String user_id;
+
+	@XmlAttribute
+	public Integer count;
+
+	@XmlAttribute
+	public Integer start;
+
+	public PurchaseDto[] purchases;
+	
+	private int next;
+
+	public UserPurchasesDto(String user_id, int count, int start) {
+		this.user_id = user_id;
+		this.count = count;
+		this.start = start;
+		purchases = new PurchaseDto[count - start];
+	}
+	
+	// This is a stub constructor required for GSON deserialization and should not be used
+	@SuppressWarnings("unused")
+	private UserPurchasesDto() {}
+	
+	public void addPurchase(String eid, String iid, long timestamp) {
+		if (next == purchases.length)
+			throw new IllegalStateException("UserPurchasesDto filled to capacity");
+		purchases[next++] = new PurchaseDto(eid, user_id, iid, timestamp);
+	}
+}
