@@ -142,7 +142,7 @@
 	</build>
 	<properties>
 		<data.path>/home/ugrad00/kolb/scratch/Resarch/lenskit/lenskit-webapp/h2Data</data.path>
-		<recommender.properties.path>/export/scratch/kolb/Research/lenskit/lenskit-webapp/target/test-classes/recServer.properties</recommender.properties.path>
+		<recommender.properties.path>/export/scratch/kolb/Research/lenskit/lenskit-webapp/src/main/resources/recServer.properties</recommender.properties.path>
 		<server.port>8081</server.port>
 		<server.context>lenskit</server.context>
 	</properties>

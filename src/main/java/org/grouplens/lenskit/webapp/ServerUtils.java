@@ -147,8 +147,12 @@ public class ServerUtils {
 	public static URL getFileUrl(Class<?> clazz, String fileName) {
 		return clazz.getClassLoader().getResource(fileName);
 	}
+	
+	public static String getFilePath(Class<?> clazz, String fileName) {
+		return getFileUrl(clazz, fileName).toString().substring("file:".length());
+	}
 
 	public static enum SerializationFormat {
-		JSON, XML, UNSPECIFIED,OTHER
+		JSON, XML, UNSPECIFIED, OTHER
 	}
 }

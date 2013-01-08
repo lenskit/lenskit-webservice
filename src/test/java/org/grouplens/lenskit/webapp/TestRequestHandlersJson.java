@@ -1,6 +1,5 @@
 package org.grouplens.lenskit.webapp;
 
-import java.net.URL;
 import java.sql.SQLException;
 
 import org.grouplens.common.dto.JsonDtoContentHandler;
@@ -28,9 +27,7 @@ public class TestRequestHandlersJson extends AbstractRequestHandlerTest {
 	
 	@Before
 	public void init() throws SQLException {
-		URL propertyFileUrl = ServerUtils.getFileUrl(this.getClass(), "recServer.properties");
-		System.err.println(propertyFileUrl);
-		String filePath = propertyFileUrl.toString().substring("file:".length());
+		String filePath = ServerUtils.getFilePath(this.getClass(), "recServer.properties");
 		Configuration config = new Configuration(filePath);
 		LenskitRecommenderEngineFactory factory = config.getLenskitRecommenderEngineFactory();
 		LenskitRecommenderEngine engine = factory.create();
