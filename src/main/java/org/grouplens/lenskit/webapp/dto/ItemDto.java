@@ -8,6 +8,8 @@ public class ItemDto extends Dto {
 	
 	public String _revision_id;
 	
+	public ItemDto() {}
+	
 	public ItemDto(String item_id) {
 		this.item_id = item_id;
 	}
@@ -16,9 +18,4 @@ public class ItemDto extends Dto {
 		this.item_id = item_id;
 		this._revision_id = _revision_id;
 	}
-	
-	// This is a stub constructor required for GSON deserialization and should not be used
-	@SuppressWarnings("unused")
-	private ItemDto() {}
-	
 }

@@ -17,16 +17,15 @@ public class ItemRatingsDto extends Dto {
 	
 	private int next;
 	
+	// Deserialization requires a no-arg constructor
+	public ItemRatingsDto() {}
+	
 	public ItemRatingsDto(String item_id, int count, int start) {
 		this.item_id = item_id;
 		this.count = count;
 		this.start = start;
 		ratings = new RatingDto[count - start];
 	}
-	
-	//This is a stub constructor required for GSON deserialization and should not be used
-	@SuppressWarnings("unused")
-	private ItemRatingsDto() {}
 	
 	public void addRating(String eid, String uid, long timestamp, Double value, String _revision_id) {
 		if (next == ratings.length)

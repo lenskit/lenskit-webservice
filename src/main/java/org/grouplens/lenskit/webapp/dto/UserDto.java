@@ -9,6 +9,9 @@ public class UserDto extends Dto {
 	@XmlAttribute
 	public String _revision_id;
 	
+	// Deserialization requires a no-arg constructor
+	public UserDto() {}
+	
 	public UserDto(String user_id) {
 		this.user_id = user_id;
 	}
@@ -17,8 +20,4 @@ public class UserDto extends Dto {
 		this.user_id = user_id;
 		this._revision_id = _revision_id;
 	}
-	
-	// This is a stub constructor required for GSON deserialization and should not be used
-	@SuppressWarnings("unused")
-	private UserDto() {}
 }

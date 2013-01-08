@@ -25,9 +25,8 @@ public class UserPredictionsDto extends Dto {
 		next = 0;
 	}
 	
-	// This is a stub constructor required for GSON deserialization and should not be used
-	@SuppressWarnings("unused")
-	private UserPredictionsDto() {}
+	// Deserialization requires a no-arg constructor
+	public UserPredictionsDto() {}
 	
 	public void addPrediction(String iid, Double value) {
 		if (next == predictions.length) throw new IllegalStateException("UserPredictionsDto filled to capacity");

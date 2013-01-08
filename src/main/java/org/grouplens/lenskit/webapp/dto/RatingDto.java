@@ -17,6 +17,9 @@ public class RatingDto extends Dto {
 	
 	public String _revision_id;
 	
+	// Deserialization requires a no-arg constructor
+	public RatingDto() {}
+	
 	public RatingDto(String event_id, String user_id, String item_id, Long timestamp, Double value) {
 		this.event_id = event_id;
 		this.user_id = user_id;
@@ -50,8 +53,4 @@ public class RatingDto extends Dto {
 			this.value = r.getPreference().getValue();
 		}
 	}
-	
-	// This is a stub constructor required for GSON deserialization and should not be used
-	@SuppressWarnings("unused")
-	private RatingDto() {}
 }

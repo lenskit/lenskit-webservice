@@ -17,6 +17,9 @@ public class UserRecommendationsDto extends Dto {
 	
 	private int next;
 	
+	// Deserialization requires a no-arg constructor
+	public UserRecommendationsDto() {}
+	
 	public UserRecommendationsDto(String user_id, int count, int start) {
 		this.user_id = user_id;
 		this.count = count;
@@ -24,10 +27,6 @@ public class UserRecommendationsDto extends Dto {
 		recommendations = new RecommendationDto[count - start];
 		next = 0;
 	}
-	
-	// This is a stub constructor required for GSON deserialization and should not be used
-	@SuppressWarnings("unused")
-	private UserRecommendationsDto() {}
 	
 	public void addRecommendation(String iid) {
 		if (next == recommendations.length)

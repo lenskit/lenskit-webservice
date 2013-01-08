@@ -8,12 +8,11 @@ public class PredictionDto extends Dto {
 	
 	public Double value;
 	
+	// Deserialization requires a no-arg constructor
+	public PredictionDto() {}
+	
 	public PredictionDto(String item, double value) {
 		this.item = item;
 		this.value = value;
 	}
-	
-	// This is a stub constructor required for GSON deserialization and should not be used
-	@SuppressWarnings("unused")
-	private PredictionDto() {}
 }

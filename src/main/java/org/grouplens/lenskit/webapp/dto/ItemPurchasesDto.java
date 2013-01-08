@@ -17,6 +17,9 @@ public class ItemPurchasesDto extends Dto {
 	
 	private int next;
 	
+	// Deserialization requires a no-arg constructor
+	public ItemPurchasesDto() {}
+	
 	public ItemPurchasesDto(String item_id, int count, int start) {
 		this.item_id = item_id;
 		this.count = count;
@@ -29,8 +32,4 @@ public class ItemPurchasesDto extends Dto {
 		if (next == purchases.length) throw new IllegalStateException("ItemPurchasesDto filled to capacity");
 		purchases[next++] = new PurchaseDto(eid, uid, item_id, timestamp);
 	}
-	
-	// This is a stub constructor required for GSON deserialization and should not be used
-	@SuppressWarnings("unused")
-	private ItemPurchasesDto() {}
 }

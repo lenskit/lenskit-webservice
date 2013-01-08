@@ -17,16 +17,15 @@ public class UserPurchasesDto extends Dto {
 	
 	private int next;
 
+	// Deserialization requires a no-arg constructor
+	public UserPurchasesDto() {}
+	
 	public UserPurchasesDto(String user_id, int count, int start) {
 		this.user_id = user_id;
 		this.count = count;
 		this.start = start;
 		purchases = new PurchaseDto[count - start];
 	}
-	
-	// This is a stub constructor required for GSON deserialization and should not be used
-	@SuppressWarnings("unused")
-	private UserPurchasesDto() {}
 	
 	public void addPurchase(String eid, String iid, long timestamp) {
 		if (next == purchases.length)

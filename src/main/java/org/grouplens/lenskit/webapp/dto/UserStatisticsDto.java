@@ -13,14 +13,13 @@ public class UserStatisticsDto extends Dto {
 	
 	public Double average_rating;
 	
+	// Deserialization requires a no-arg constructor
+	public UserStatisticsDto() {}
+	
 	public UserStatisticsDto(String user_id, int event_count, int item_rating_count, double average_rating) {
 		this.user_id = user_id;
 		this.event_count = event_count;
 		this.item_rating_count = item_rating_count;
 		this.average_rating = average_rating;
 	}
-	
-	// This is a stub constructor required for GSON deserialization and should not be used
-	@SuppressWarnings("unused")
-	private UserStatisticsDto() {}
 }

@@ -25,9 +25,8 @@ public class UserPreferencesDto extends Dto {
 		next = 0;
 	}
 	
-	// This is a stub constructor required for GSON deserialization and should not be used
-	@SuppressWarnings("unused")
-	private UserPreferencesDto() {}
+	// Deserialization requires a no-arg constructor
+	public UserPreferencesDto() {}
 	
 	public void addPreference(String iid, String type, double value) {
 		if (next == preferences.length) {

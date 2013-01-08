@@ -20,6 +20,8 @@ public class EventDto extends Dto {
 	
 	public String _revision_id;
 	
+	public EventDto() {}
+	
 	public EventDto(String type, String event_id, String user_id, String item_id, long timestamp, Double value) {
 		this.type = type;
 		this.event_id = event_id;
@@ -68,9 +70,4 @@ public class EventDto extends Dto {
 				this.value = r.getPreference().getValue();
 		}
 	}
-	
-	// This is a stub constructor required for GSON deserialization and should not be used
-	@SuppressWarnings("unused")
-	private EventDto() {}
-
 }

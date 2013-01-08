@@ -6,12 +6,10 @@ public class RecommendationDto extends Dto {
 	
 	public String item;
 	
+	// Deserialization requires a no-arg constructor
+	public RecommendationDto() {}
+	
 	public RecommendationDto(String item) {
 		this.item = item;
-	}
-	
-	// This is a stub constructor required for GSON deserialization and should not be used
-	@SuppressWarnings("unused")
-	private RecommendationDto() {}
-	
+	}	
 }
