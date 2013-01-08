@@ -1,6 +1,5 @@
 package org.grouplens.lenskit.webapp;
 
-import java.net.URL;
 import java.sql.SQLException;
 
 import org.grouplens.lenskit.core.LenskitRecommenderEngine;
@@ -13,9 +12,8 @@ public class TestSessionSchema extends AbstractSessionTest {
 
 	@Before
 	public void init() throws SQLException {
-		URL propertyFileUrl = ServerUtils.getFileUrl(this.getClass(), "recServerNoData.properties");
-		String filePath = propertyFileUrl.toString().substring("file:".length());
-		Configuration config = new Configuration(filePath);
+		String configPath = ServerUtils.getFilePath(this.getClass(), "recServerNoData.properties");
+		Configuration config = new Configuration(configPath);
 		LenskitRecommenderEngineFactory factory = config.getLenskitRecommenderEngineFactory();
 		LenskitRecommenderEngine engine = factory.create();
 		session = new Session(engine.open());
