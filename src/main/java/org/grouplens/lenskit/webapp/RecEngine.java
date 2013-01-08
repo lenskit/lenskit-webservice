@@ -45,8 +45,6 @@ public class RecEngine extends HttpServlet {
 	 */
 	public static final String REC_ENGINE_CONFIG_PARAMETER = "re-config-path";
 
-	public static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
-
 	private static final Object2IntOpenHashMap<Class<? extends Exception>> exceptionMapping;
 	static {
 		exceptionMapping = new Object2IntOpenHashMap<Class<? extends Exception>>();

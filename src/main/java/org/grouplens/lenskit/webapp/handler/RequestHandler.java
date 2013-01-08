@@ -18,7 +18,6 @@ import org.grouplens.common.dto.JsonDtoContentHandler;
 import org.grouplens.common.dto.XmlDtoContentHandler;
 import org.grouplens.lenskit.webapp.ServerUtils.ParsedUrl;
 import org.grouplens.lenskit.webapp.ServerUtils.SerializationFormat;
-import org.grouplens.lenskit.webapp.RecEngine;
 import org.grouplens.lenskit.webapp.RequestContentTypeException;
 import org.grouplens.lenskit.webapp.ResponseContentTypeException;
 import org.grouplens.lenskit.webapp.Session;
@@ -95,7 +94,6 @@ public abstract class RequestHandler {
 		if (format == SerializationFormat.XML) {
 			response.setContentType("application/xml");
 			XmlDtoContentHandler handler = new XmlDtoContentHandler();
-			responseWriter.println(RecEngine.XML_HEADER);
 			handler.toString(container, responseWriter);
 		} else if (format == SerializationFormat.JSON || format == SerializationFormat.UNSPECIFIED) {
 			response.setContentType("application/json");
