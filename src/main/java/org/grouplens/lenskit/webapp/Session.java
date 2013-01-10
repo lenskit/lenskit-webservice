@@ -19,6 +19,7 @@ import org.grouplens.lenskit.cursors.Cursors;
 import org.grouplens.lenskit.data.Event;
 import org.grouplens.lenskit.data.dao.DataAccessObject;
 import org.grouplens.lenskit.data.event.Rating;
+import org.grouplens.lenskit.vectors.VectorEntry;
 
 public class Session implements Closeable {
 
@@ -248,7 +249,7 @@ public class Session implements Closeable {
 		for (long l : getCurrentUserRatings(userId).keySet()) {
 			predItems.remove(l);
 		}
-		for (Map.Entry<Long, Double> e : recommender.getRatingPredictor().score(userId, predItems)) {
+		for (VectorEntry e : recommender.getRatingPredictor().score(userId, predItems)) {
 			predictions.put(e.getKey(), e.getValue());
 		}
 		return predictions;
@@ -262,7 +263,7 @@ public class Session implements Closeable {
 			items.remove(id);
 		}
 		Map<Long, Double> predictions = new Long2DoubleOpenHashMap();
-		for (Map.Entry<Long, Double> e : recommender.getRatingPredictor().score(userId, items)) {
+		for (VectorEntry e : recommender.getRatingPredictor().score(userId, items)) {
 			predictions.put(e.getKey(), e.getValue());
 		}
 		return predictions;

@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.grouplens.lenskit.RecommenderBuildException;
 import org.grouplens.lenskit.core.LenskitRecommenderEngineFactory;
 import org.grouplens.lenskit.webapp.Configuration.ConfigurationException;
 import org.grouplens.lenskit.webapp.ServerUtils.ParsedUrl;
@@ -68,6 +69,8 @@ public class RecEngine extends HttpServlet {
 			session = new Session(factory.create().open());
 		} catch (ConfigurationException ce) {
 			throw new ServletException("Unable to load rec-engine configuration", ce);
+		} catch (RecommenderBuildException rbe) {
+			throw new ServletException("Unable to build back-end recommender", rbe);
 		}
 
 		manager = new RequestHandlerManager();

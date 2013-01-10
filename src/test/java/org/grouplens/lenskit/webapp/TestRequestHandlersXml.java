@@ -1,7 +1,6 @@
 package org.grouplens.lenskit.webapp;
 
 import java.net.URL;
-import java.sql.SQLException;
 
 import org.grouplens.common.dto.XmlDtoContentHandler;
 import org.grouplens.lenskit.core.LenskitRecommenderEngine;
@@ -27,7 +26,7 @@ import org.junit.Before;
 public class TestRequestHandlersXml extends AbstractRequestHandlerTest {
 
 	@Before
-	public void init() throws SQLException {
+	public void init() throws Exception {
 		URL propertyFileUrl = ServerUtils.getFileUrl(this.getClass(), "recServer.properties");
 		String filePath = propertyFileUrl.toString().substring("file:".length());
 		Configuration config = new Configuration(filePath);

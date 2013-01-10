@@ -1,7 +1,5 @@
 package org.grouplens.lenskit.webapp;
 
-import java.sql.SQLException;
-
 import org.grouplens.lenskit.core.LenskitRecommenderEngine;
 import org.grouplens.lenskit.core.LenskitRecommenderEngineFactory;
 import org.grouplens.lenskit.data.event.SimpleNullRating;
@@ -11,7 +9,7 @@ import org.junit.Before;
 public class TestSessionSchema extends AbstractSessionTest {
 
 	@Before
-	public void init() throws SQLException {
+	public void init() throws Exception {
 		String configPath = ServerUtils.getFilePath(this.getClass(), "recServerNoData.properties");
 		Configuration config = new Configuration(configPath);
 		LenskitRecommenderEngineFactory factory = config.getLenskitRecommenderEngineFactory();

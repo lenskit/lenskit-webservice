@@ -8,11 +8,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import org.grouplens.lenskit.core.Builder;
 import org.grouplens.lenskit.core.LenskitRecommenderEngineFactory;
+import org.grouplens.lenskit.core.Parameter;
 import org.grouplens.lenskit.data.dao.DAOFactory;
-import org.grouplens.lenskit.params.meta.Parameters;
-import org.grouplens.lenskit.util.PrimitiveUtils;
 
 
 /**
@@ -40,7 +38,9 @@ import org.grouplens.lenskit.util.PrimitiveUtils;
  * @author Daniel Kluver
  */
 public class Configuration {
-    public static final String LENSKIT_FACTORY_PROPERTY_NAME = "lenskit.factory";
+    private static final String LENSKIT_FACTORY_PROPERTY_NAME = "lenskit.factory";
+    
+    private static final String WITHIN_SEPERATOR = "/";
     
     private final Properties properties;
     
@@ -219,31 +219,41 @@ public class Configuration {
         key = "org.grouplens.lenskit" + key.substring(LENSKIT_FACTORY_PROPERTY_NAME.length());
         
         try {
-            Class<?> keyClass = Class.forName(key);
+            Class<?> contextClass = null;
+            Class <?> keyClass;
+        	
+        	// Binding within a context
+        	if (key.contains(WITHIN_SEPERATOR)) {
+            	contextClass = Class.forName(key.substring(0, key.indexOf(WITHIN_SEPERATOR)));
+            	keyClass = Class.forName(key.substring(key.indexOf(WITHIN_SEPERATOR)+1));
+            } else {
+            	keyClass = Class.forName(key);
+            }
+            
             if (keyClass.isAnnotation()) {
                 Class<? extends Annotation> annotKey = (Class<? extends Annotation>) keyClass;
-                if (Parameters.isParameter(annotKey)) {
-                    Class<?> paramType = Parameters.getParameterType(annotKey);
+                Parameter param = annotKey.getAnnotation(Parameter.class);
+                if (param != null) {
+                    Class<?> paramType = param.value();
                     
                     if (Number.class.isAssignableFrom(paramType)) {
                         // set the parameter to an actual number
-                        factory.set(annotKey, PrimitiveUtils.parse((Class<? extends Number>) paramType, value));
+                        factory.set(annotKey).to(parseNumber((Class<? extends Number>) paramType, value));
+                    } else if (Enum.class.isAssignableFrom(paramType)) {
+                    	// set parameter to enum value
+                    	factory.set(annotKey).to(Enum.valueOf((Class<Enum>)paramType, value));
                     } else {
-                        // value should be a regular class
-                        Class valueClass = Class.forName(value);
-                        if (Builder.class.isAssignableFrom(valueClass))
-                            factory.setBuilder(annotKey, paramType, valueClass);
-                        else
-                            factory.setComponent(annotKey, paramType, valueClass);
+                    	factory.set(annotKey).to(value);
                     }
                 }
             } else {
-                // regular binding between class and implementation
+                // regular binding between class and implementation or provider
                 Class valueClass = Class.forName(value);
-                if (Builder.class.isAssignableFrom(valueClass))
-                    factory.setBuilder(keyClass, valueClass);
-                else
-                    factory.setComponent(keyClass, valueClass);
+                if (contextClass != null) {
+                	factory.within(contextClass).bind(keyClass).to(valueClass);
+                } else {
+                	factory.bind(keyClass).to(valueClass);
+                }
             }
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
@@ -261,6 +271,23 @@ public class Configuration {
     		}
     	}
     	return null;
+    }
+    
+    private static Number parseNumber(Class<? extends Number> type, String value) {
+        if (type.equals(Integer.class))
+            return Integer.parseInt(value);
+        else if (type.equals(Long.class))
+            return Long.parseLong(value);
+        else if (type.equals(Float.class))
+            return Float.parseFloat(value);
+        else if (type.equals(Double.class))
+            return Double.parseDouble(value);
+        else if (type.equals(Byte.class))
+            return Byte.parseByte(value);
+        else if (type.equals(Short.class))
+            return Short.parseShort(value);
+        else
+            throw new IllegalArgumentException("Unsupported Number type: " + type);
     }
 }
 
