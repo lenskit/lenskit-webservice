@@ -11,12 +11,13 @@ import java.util.Properties;
 import org.grouplens.lenskit.core.LenskitRecommenderEngineFactory;
 import org.grouplens.lenskit.core.Parameter;
 import org.grouplens.lenskit.data.dao.DAOFactory;
+import org.grouplens.lenskit.webapp.sql.JDBCRatingServerDAOFactory;
 
 
 /**
  * <p>
  * Configuration handles the loading and access of a configuration file used by
- * the Dao and RecommendationEngine factories. The configuration file is a
+ * the DAO and LenskitRecommenderEngine factories. The configuration file is a
  * properties file with the standard formating:
  * 
  * <pre>
@@ -29,9 +30,9 @@ import org.grouplens.lenskit.data.dao.DAOFactory;
  * </p>
  * <p>
  * Configuration defines one property within the config file:
- * "dao.factory". If present in the config file, it is
- * assumed that it contains the full class name of a {@link DataAccessObjectManager}. If not present, the
- * Configuration uses a {@link HibernateLenskitDaoFactory} by default.
+ * "rec.dao.factory". If present in the config file, it is
+ * assumed that it contains the full class name of a {@link DAOFactory}. If not present, the
+ * Configuration uses a {@link JDBCRatingServerDAOFactory} by default.
  * </p>
  * 
  * @author Michael Ludwig
@@ -45,16 +46,17 @@ public class Configuration {
     private final Properties properties;
     
     /**
-     * Load the properties file from the given input stream. After loading,
+     * Load the properties file from the given file name. After loading,
      * the properties within the Configuration may be modified by calling
      * {@link #setProperty(String, String)}.
      * 
-     * @param configFile input stream of the properties file
+     * @param configFile Path for the properties file
      * @throws ConfigurationException if there is any problem loading file
      */
     public Configuration(String configFile) throws ConfigurationException {
-        if (configFile == null)
+        if (configFile == null) {
             throw new ConfigurationException("configuration file name cannot be null");
+        }
         properties = new Properties();
         try {
             properties.load(new FileReader(configFile));
@@ -65,12 +67,9 @@ public class Configuration {
     }
 
     /**
-     * Create and return a new instance of DataAccessObjectManager using the class type
-     * specified in the "factory.dao" property. If the property does not exist,
-     * a {@link HibernateLenskitDaoFactory} is created.
-     * 
-     * @return A DataAccessObjectManager
-     * @throws ConfigurationException if a DataAccessObjectManager could not be created
+     * Create, configure, and return a new instance of {@link LenskitRecommenderEngineFactory},
+     * using the specified {@link DAOFactory} and components if possible.
+     * @return A {@link LenskitRecommenderEngineFactory}
      */
     public LenskitRecommenderEngineFactory getLenskitRecommenderEngineFactory() {
         LenskitRecommenderEngineFactory factory = new LenskitRecommenderEngineFactory(this.getDaoFactory());
@@ -80,28 +79,38 @@ public class Configuration {
         return factory;
     }
     
+    /**
+     * Create and return a new instance of {@link DAOFactory} using the type
+     * specified in the "rec.dao.factory" property. If the property does not exist,
+     * a {@link JDBCRatingServerDAOFactory} is created.
+     * 
+     * @return A {@link DataAccessObjectManager}
+     * @throws ConfigurationException if a {@link DAOFactory} could not be created
+     */
     public DAOFactory getDaoFactory() {
-    	return newInstance(DAOFactory.class, "rec.dao.factory", "org.grouplens.lenskit.webapp.sql.JDBCRatingServerDAOFactory");
+    	return newInstance(DAOFactory.class, "rec.dao.factory",
+    			"org.grouplens.lenskit.webapp.sql.JDBCRatingServerDAOFactory");
     }
 
     /**
-     * Return the value of the property with the given <tt>name</tt>. Keep in
+     * Return the value of the property with the given name. Keep in
      * mind that the specified name must be the final property name, after group
      * names have been combined. If the property does not exist within this
-     * Configuration, null is returned.
+     * Configuration, <tt>null</tt> is returned.
      * 
      * @param name The final name of the property
-     * @return The String value of the property or null
-     * @throws NullPointerException if name is null
+     * @return The value of the property or <tt>null</tt>
+     * @throws NullPointerException if <tt>name</tt> is null
      */
     public String getProperty(String name) {
-        if (name == null)
+        if (name == null) {
             throw new NullPointerException("Name cannot be null");
+        }
         return properties.getProperty(name);
     }
 
     /**
-     * Return the value of the property <tt>name</tt>. If the property does not
+     * Return the value of the specified property If the property does not
      * exist, then <tt>dflt</tt> is automatically returned.
      * 
      * @param name The final name of the property
@@ -110,15 +119,16 @@ public class Configuration {
      * @throws NullPointerException if name is null
      */
     public String getProperty(String name, String dflt) {
-        if (name == null)
+        if (name == null) {
             throw new NullPointerException("Name cannot be null");
+        }
         return properties.getProperty(name, dflt);
     }
 
     /**
      * <p>
      * Modify this Configuration to add, modify or remove a property. If
-     * <tt>value</tt> is null, the property with the given <tt>name</tt> will be
+     * <tt>value</tt> is null, the property with the given name will be
      * removed from this Configuration. Otherwise subsequent calls to
      * {@link #getProperty(String)} with <tt>name</tt> will return
      * <tt>value</tt>.
@@ -126,20 +136,20 @@ public class Configuration {
      * <p>
      * This can be used to override parts of the Configuration under special
      * circumstances while still relying on the factories to provide a
-     * {@link Dao} and {@link RecommendationEngine}.
+     * {@link DataAccessObject} and {@link RecommenderEngine}.
      * </p>
      * 
      * @param name The final name of the property to assign
-     * @param value The new value of the property, or null if it's to be removed
-     * @throws NullPointerException if name is null
-     * @throws IllegalArgumentException if name is the empty string
+     * @param value The new value of the property, or <tt>null</tt> if it's to be removed
+     * @throws NullPointerException if name is <tt>null</tt>
+     * @throws IllegalArgumentException if <tt>name</tt> is the empty string
      */
     public void setProperty(String name, String value) {
-        if (name == null)
+        if (name == null) {
             throw new NullPointerException("Name cannot be null");
-        if (name.isEmpty())
+        } else if (name.isEmpty()) {
             throw new IllegalArgumentException("Name cannot be the empty string");
-        
+        }
         if (value != null)
             properties.setProperty(name, value);
         else
@@ -148,7 +158,7 @@ public class Configuration {
 
     /**
      * Return a Map of all currently assigned properties in this Configuration.
-     * The returned map can be mutated without affecting the Configuraiton, and
+     * The returned map can be mutated without affecting the Configuration, and
      * it will not reflect changes to the Configuration object.
      * 
      * @return Map of all properties
@@ -161,24 +171,23 @@ public class Configuration {
         return map;
     }
     
-    /*
-     * This assumes that type is either RecommendationFactory or DataAccessObjectManager,
-     * because it looks for a constructor that takes a single Configuration.
-     */
+    // This looks for a constructor with a Configuration as its only argument
     @SuppressWarnings("unchecked")
-    private <T> T newInstance(Class<T> type, String name, String dfltValue) {
-        String value = getProperty(name, dfltValue);
+    private <T> T newInstance(Class<T> type, String name, String defaultPath) {
+        T retVal;
+    	String value = getProperty(name, defaultPath);
+    	
         
         Class<?> pType;
-        T retVal;
         try {
             pType = Class.forName(value);
         } catch (ClassNotFoundException e) {
             throw new ConfigurationException("The class " + value + " could not be found", name);
         }
-        if (!type.isAssignableFrom(pType))
+        if (!type.isAssignableFrom(pType)) {
             throw new ConfigurationException("The property " + name + " must be a class name that is an instance of " 
                                              + type + ", not: " + pType);
+        }
         try {
             retVal =  (T) pType.getConstructor(Configuration.class).newInstance(this);
             return retVal;
@@ -190,7 +199,6 @@ public class Configuration {
         		throw new ConfigurationException("An instance of " + value + " could not be instanitated");
         	}
         } catch (Exception e) {
-            e.printStackTrace();
         	throw new ConfigurationException("An instance of " + value + " could not be instantiated", e);
         }
     }
@@ -213,14 +221,15 @@ public class Configuration {
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private void configureComponent(String key, String value, LenskitRecommenderEngineFactory factory) {
-        if (!key.startsWith(LENSKIT_FACTORY_PROPERTY_NAME))
+        // Ignore property if it doesn't match the appropriate pattern
+    	if (!key.startsWith(LENSKIT_FACTORY_PROPERTY_NAME)) {
             return;
+    	}
         
         key = "org.grouplens.lenskit" + key.substring(LENSKIT_FACTORY_PROPERTY_NAME.length());
-        
         try {
             Class<?> contextClass = null;
-            Class <?> keyClass;
+            Class<?> keyClass;
         	
         	// Binding within a context
         	if (key.contains(WITHIN_SEPERATOR)) {
@@ -234,15 +243,15 @@ public class Configuration {
                 Class<? extends Annotation> annotKey = (Class<? extends Annotation>) keyClass;
                 Parameter param = annotKey.getAnnotation(Parameter.class);
                 if (param != null) {
-                    Class<?> paramType = param.value();
-                    
+                    Class<?> paramType = param.value();                  
                     if (Number.class.isAssignableFrom(paramType)) {
                         // set the parameter to an actual number
                         factory.set(annotKey).to(parseNumber((Class<? extends Number>) paramType, value));
                     } else if (Enum.class.isAssignableFrom(paramType)) {
                     	// set parameter to enum value
                     	factory.set(annotKey).to(Enum.valueOf((Class<Enum>)paramType, value));
-                    } else {
+                    } else if (String.class.isAssignableFrom(paramType)) {
+                    	// set parameter directly to value
                     	factory.set(annotKey).to(value);
                     }
                 }
@@ -260,6 +269,12 @@ public class Configuration {
         }
     }
     
+    /**
+     * Create a new instance of the desired class, as specified in the Configuration.
+     * @param clazz The type of the instance.
+     * @param defaultPath The name of the default type to instantiate.
+     * @return A new instance of the the desired type.
+     */
     public <T> T getInstance(Class<T> clazz, String defaultPath) {
     	for (Entry<String, String> e : getProperties().entrySet()) {
     		try {
@@ -273,21 +288,22 @@ public class Configuration {
     	return null;
     }
     
+    // Utility method for parsing
     private static Number parseNumber(Class<? extends Number> type, String value) {
-        if (type.equals(Integer.class))
+        if (type.equals(Integer.class)) {
             return Integer.parseInt(value);
-        else if (type.equals(Long.class))
+        } else if (type.equals(Long.class)) {
             return Long.parseLong(value);
-        else if (type.equals(Float.class))
+        } else if (type.equals(Float.class)) {
             return Float.parseFloat(value);
-        else if (type.equals(Double.class))
+        } else if (type.equals(Double.class)) {
             return Double.parseDouble(value);
-        else if (type.equals(Byte.class))
+        } else if (type.equals(Byte.class)) {
             return Byte.parseByte(value);
-        else if (type.equals(Short.class))
+        } else if (type.equals(Short.class)) {
             return Short.parseShort(value);
-        else
+        } else {
             throw new IllegalArgumentException("Unsupported Number type: " + type);
+        }
     }
 }
-
