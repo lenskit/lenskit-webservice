@@ -22,8 +22,7 @@ public class JDBCRatingServerDAOFactory extends JDBCRatingDAO.Factory {
 	}
 
 	@Override
-	public JDBCRatingServerDAO create() {
-		
+	public JDBCRatingServerDAO create() {		
 		if (cxnUrl == null) {
 			throw new UnsupportedOperationException("Cannot open session w/o URL");
 		}
@@ -32,7 +31,7 @@ public class JDBCRatingServerDAOFactory extends JDBCRatingDAO.Factory {
 		try {
 			Class.forName("org.h2.Driver");
 			dbc = DriverManager.getConnection(cxnUrl);
-			JDBCRatingServerDAO retDao = new JDBCRatingServerDAO(new JDBCServerDataSession(dbc, factory), true);
+			JDBCRatingServerDAO dao = new JDBCRatingServerDAO(new JDBCServerDataSession(dbc, factory), true);
 			boolean reloadEnabled = Boolean.valueOf(config.getProperty("rec.dao.reload-enabled", "false"));
 			String schemaScript = config.getProperty("rec.dao.schema");
 			if (schemaScript != null && reloadEnabled) {
@@ -42,7 +41,7 @@ public class JDBCRatingServerDAOFactory extends JDBCRatingDAO.Factory {
 			if (dataScript != null && reloadEnabled) {
 				RunScript.execute(cxnUrl, null, null, dataScript, null, false);
 			}
-			return retDao;
+			return dao;
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		} catch (ClassNotFoundException e) {
@@ -51,6 +50,7 @@ public class JDBCRatingServerDAOFactory extends JDBCRatingDAO.Factory {
 	}
 
 	private static ServerSQLStatementFactory getServerSQLStatementFactory(Configuration config) {
-		return config.getInstance(ServerSQLStatementFactory.class, "org.grouplens.lenskit.webapp.sql.BasicServerSQLStatementFactory");
+		return config.getInstance(ServerSQLStatementFactory.class,
+				"org.grouplens.lenskit.webapp.sql.BasicServerSQLStatementFactory");
 	}
 }

@@ -29,14 +29,16 @@ public class UserEventsDto extends Dto {
 	}
 	
 	public void addEvent(String type, String event_id, String item_id, long timestamp, Double value, String _revision_id) {
-		if (next == events.length)
+		if (next == events.length) {
 			throw new IllegalStateException("UserEventsDto filled to capacity");
+		}
 		events[next++] = new EventDto(type, event_id, user_id, item_id, timestamp, value, _revision_id);
 	}
 	
 	public void addEvent(String type, String event_id, String item_id, long timestamp, String _revision_id) {
-		if (next == events.length)
+		if (next == events.length) {
 			throw new IllegalStateException("UserEventsDto filled to capacity");
+		}
 		events[next++] = new EventDto(type, event_id, user_id, item_id, timestamp, null,  _revision_id);
 	}
 }

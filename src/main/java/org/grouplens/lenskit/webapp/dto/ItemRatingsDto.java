@@ -28,8 +28,9 @@ public class ItemRatingsDto extends Dto {
 	}
 	
 	public void addRating(String eid, String uid, long timestamp, Double value, String _revision_id) {
-		if (next == ratings.length)
+		if (next == ratings.length) {
 			throw new IllegalStateException("ItemRatingsDto filled to capacity");
+		}
 		ratings[next++] = new RatingDto(eid, uid, item_id, timestamp, value, _revision_id);
 	}
 }

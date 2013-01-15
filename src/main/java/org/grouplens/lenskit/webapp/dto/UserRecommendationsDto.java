@@ -29,8 +29,9 @@ public class UserRecommendationsDto extends Dto {
 	}
 	
 	public void addRecommendation(String iid) {
-		if (next == recommendations.length)
+		if (next == recommendations.length) {
 			throw new IllegalStateException("UserRecommendationsDto filled to capacity");
+		}
 		recommendations[next++] = new RecommendationDto(iid);
 	}
 }

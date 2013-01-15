@@ -67,8 +67,9 @@ public class JDBCRatingServerDAO extends JDBCRatingDAO implements ServerDataAcce
 				}
 				ps.setLong(BasicServerSQLStatementFactory.TIMESTAMP_COLUMN_INDEX, r.getTimestamp());
 				ps.setString(BasicServerSQLStatementFactory.REVISION_COLUMN_INDEX, generateRevisionId());
-				if (ps.executeUpdate() != 1)
-					throw new SQLException("Error Updating SQL Database");
+				if (ps.executeUpdate() != 1) {
+					throw new SQLException("Error Adding New Event to SQL Database");
+				}
 			} catch (SQLException e) {
 				throw new RuntimeException(e);
 			}
@@ -109,7 +110,9 @@ public class JDBCRatingServerDAO extends JDBCRatingDAO implements ServerDataAcce
 			ResultSet results = ps.executeQuery();
 			results.next();
 			String revId = results.getString(1);
-			if (!results.isLast()) throw new SQLException("Query Returned Multiple Events");
+			if (!results.isLast()) {
+				throw new SQLException("Query Returned Multiple Events");
+			}
 			return revId;
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
@@ -124,6 +127,8 @@ public class JDBCRatingServerDAO extends JDBCRatingDAO implements ServerDataAcce
 	public void close() {
 		try {
 			session.close();
-		} catch (IOException e) {}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

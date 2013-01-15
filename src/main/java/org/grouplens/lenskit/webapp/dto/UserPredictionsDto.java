@@ -29,7 +29,9 @@ public class UserPredictionsDto extends Dto {
 	public UserPredictionsDto() {}
 	
 	public void addPrediction(String iid, Double value) {
-		if (next == predictions.length) throw new IllegalStateException("UserPredictionsDto filled to capacity");
+		if (next == predictions.length) {
+			throw new IllegalStateException("UserPredictionsDto filled to capacity");
+		}
 		predictions[next++] = new PredictionDto(iid, value);
 	}
 }

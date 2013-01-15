@@ -32,26 +32,30 @@ public class JDBCServerDataSession extends JDBCDataSession {
     }
     
     public PreparedStatement addEventStatement() throws SQLException {
-    	if (addEventStatement == null)
+    	if (addEventStatement == null) {
     		addEventStatement = factory.prepareAddEvent(connection);
+    	}
     	return addEventStatement;
     }
     
     public PreparedStatement prepareTableInitStatement() throws SQLException {
-    	if (tableInitStatement == null)
+    	if (tableInitStatement == null) {
     		tableInitStatement = factory.prepareTableInit(connection);
+    	}
     	return tableInitStatement;
     }
     
     public PreparedStatement deleteEventStatement() throws SQLException {
-    	if (deleteEventStatement == null)
+    	if (deleteEventStatement == null) {
     		deleteEventStatement = factory.prepareDeleteEvent(connection);
+    	}
     	return deleteEventStatement;
     }
 
 	public PreparedStatement getEventRevIdStatement() throws SQLException {
-		if (getEventRevIdStatement == null)
+		if (getEventRevIdStatement == null) {
 			getEventRevIdStatement = factory.prepareEventRevId(connection);
+		}
 		return getEventRevIdStatement;
 	}
 	
@@ -70,10 +74,10 @@ public class JDBCServerDataSession extends JDBCDataSession {
 		boolean failed = false;
 		try {
 			super.close();
-			failed = failed || closeStatement(addEventStatement);
-			failed = failed || closeStatement(tableInitStatement);
-			failed = failed || closeStatement(deleteEventStatement);
-			failed = failed || closeStatement(getEventRevIdStatement);
+			failed = failed || !closeStatement(addEventStatement);
+			failed = failed || !closeStatement(tableInitStatement);
+			failed = failed || !closeStatement(deleteEventStatement);
+			failed = failed || !closeStatement(getEventRevIdStatement);
 			if (closeConnection) {
 				connection.close();
 			}

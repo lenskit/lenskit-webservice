@@ -28,8 +28,9 @@ public class UserPurchasesDto extends Dto {
 	}
 	
 	public void addPurchase(String eid, String iid, long timestamp) {
-		if (next == purchases.length)
+		if (next == purchases.length) {
 			throw new IllegalStateException("UserPurchasesDto filled to capacity");
+		}
 		purchases[next++] = new PurchaseDto(eid, user_id, iid, timestamp);
 	}
 }

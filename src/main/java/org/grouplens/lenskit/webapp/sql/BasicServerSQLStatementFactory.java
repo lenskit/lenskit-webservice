@@ -39,7 +39,8 @@ public class BasicServerSQLStatementFactory extends BasicSQLStatementFactory imp
 				"%s TEXT,\n" +
 				"primary key (%s));";
         String stmt = String.format(SQL, getTableName(), getIdColumn(), getUserColumn(),
-        		getItemColumn(), getRatingColumn(), getTimestampColumn(), getRevisionColumn(), getIdColumn());
+        		getItemColumn(), getRatingColumn(), getTimestampColumn(),
+        		getRevisionColumn(), getIdColumn());
 		return dbc.prepareStatement(stmt);		
 	}
 	
@@ -49,15 +50,15 @@ public class BasicServerSQLStatementFactory extends BasicSQLStatementFactory imp
 		String stmt = String.format(SQL, getTableName(), getIdColumn());
 		return dbc.prepareStatement(stmt);
 	}
-	
-	public String getRevisionColumn() {
-		return revisionColumn;
-	}
 
 	@Override
 	public PreparedStatement prepareEventRevId(Connection dbc) throws SQLException {
 		String SQL = "SELECT %s FROM %s WHERE %s=?";
 		String stmt = String.format(SQL, getRevisionColumn(), getTableName(), getIdColumn());
 		return dbc.prepareStatement(stmt);
+	}
+	
+	public String getRevisionColumn() {
+		return revisionColumn;
 	}
 }

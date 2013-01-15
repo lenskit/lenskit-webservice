@@ -66,8 +66,9 @@ public class EventDto extends Dto {
 		this.timestamp = evt.getTimestamp();
 		if (evt instanceof Rating) {
 			Rating r = (Rating)evt;
-			if (r.getPreference() != null)
+			if (r.getPreference() != null) {
 				this.value = r.getPreference().getValue();
+			}
 		}
 	}
 }
