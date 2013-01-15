@@ -14,7 +14,10 @@ import org.grouplens.lenskit.webapp.ServerUtils.SerializationFormat;
 import org.grouplens.lenskit.webapp.Session;
 import org.grouplens.lenskit.webapp.dto.EventDto;
 
-//Invoked by calling GET /events/[eid]
+/**
+ * A {@link RequestHandler} to service requests of the form
+ * calling GET /events/[eid]
+ */
 public class GetEventRequestHandler extends RequestHandler {
 
 	public GetEventRequestHandler() {
@@ -29,30 +32,34 @@ public class GetEventRequestHandler extends RequestHandler {
 
 	@Override
 	public void handle(Session session, ParsedUrl parsed, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		long eid;
 		try {
-			long eid = Long.parseLong(parsed.getResourceMap().get("events"));
-			SerializationFormat responseFormat = ServerUtils.determineResponseFormat(parsed, request.getHeader("Accept"));
-			Event evt = session.getEvent(eid);
-			EventDto dto;
-			String eventId = Long.toString(evt.getId());
-			String userId = Long.toString(evt.getUserId());
-			String itemId = Long.toString(evt.getItemId());
-			String _rev_id = session.getEventRevId(evt.getId());
-			long timestamp = evt.getTimestamp();
-			if (evt instanceof Rating) {
-				Rating r = (Rating)evt;
-				double value = -1.0;
-				if (r.getPreference() != null) value = r.getPreference().getValue();
-				dto = new EventDto("rating", eventId, userId, itemId, timestamp, value, _rev_id);
-			}
-			else {
-				dto = new EventDto("event", eventId, userId, itemId, timestamp, _rev_id);
-			}
-			DtoContainer<EventDto> container = new DtoContainer<EventDto>(EventDto.class, dto);
-			writeResponse(container, response, responseFormat);
-			response.setStatus(HttpServletResponse.SC_OK);
+			eid = Long.parseLong(parsed.getResourceMap().get("events"));
 		} catch (NumberFormatException e) {
 			throw new BadRequestException("Invalid Event ID", e);
 		}
+		
+		SerializationFormat responseFormat = ServerUtils.determineResponseFormat(parsed, request.getHeader("Accept"));
+		Event evt = session.getEvent(eid);
+		EventDto dto;
+		String eventId = Long.toString(evt.getId());
+		String userId = Long.toString(evt.getUserId());
+		String itemId = Long.toString(evt.getItemId());
+		String _rev_id = session.getEventRevId(evt.getId());
+		long timestamp = evt.getTimestamp();
+		if (evt instanceof Rating) {
+			Rating r = (Rating)evt;
+			double value = -1.0;
+			if (r.getPreference() != null) {
+				value = r.getPreference().getValue();
+			}
+			dto = new EventDto("rating", eventId, userId, itemId, timestamp, value, _rev_id);
+		}
+		else {
+			dto = new EventDto("event", eventId, userId, itemId, timestamp, _rev_id);
+		}
+		DtoContainer<EventDto> container = new DtoContainer<EventDto>(EventDto.class, dto);
+		writeResponse(container, response, responseFormat);
+		response.setStatus(HttpServletResponse.SC_OK);
 	}
 }

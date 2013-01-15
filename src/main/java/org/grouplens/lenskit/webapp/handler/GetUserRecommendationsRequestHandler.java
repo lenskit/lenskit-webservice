@@ -13,8 +13,11 @@ import org.grouplens.lenskit.webapp.ServerUtils.SerializationFormat;
 import org.grouplens.lenskit.webapp.Session;
 import org.grouplens.lenskit.webapp.dto.UserRecommendationsDto;
 
-//Invoked by calling GET /users/[uid]/recommendations
-public class GetUserRecommendationsRequestHandler extends RequestHandler{
+/**
+ * A {@link RequestHandler} to service requests of the form:
+ * GET /users/[uid]/recommendations
+ */
+public class GetUserRecommendationsRequestHandler extends RequestHandler {
 
 	public GetUserRecommendationsRequestHandler() {
 		super();
@@ -29,28 +32,34 @@ public class GetUserRecommendationsRequestHandler extends RequestHandler{
 
 	@Override
 	public void handle(Session session, ParsedUrl parsed, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		long userId;
 		try {
-			long id = Long.parseLong(parsed.getResourceMap().get("users"));
-			SerializationFormat responseFormat = ServerUtils.determineResponseFormat(parsed, request.getHeader("Accept"));
-			List<Long> recommendations = session.getUserRecommendations(id);
-			int count = recommendations.size();
-			List<String> countParams = parsed.getParamMap().get("count");
-			if (countParams != null && !countParams.isEmpty()) {
-				int countParam = Integer.parseInt(countParams.get(0));
-				if (countParam < recommendations.size()) {
-					count = countParam;
-				}
-			}
-			UserRecommendationsDto dto = new UserRecommendationsDto(Long.toString(id), count, 0);
-			DtoContainer<UserRecommendationsDto> container = new DtoContainer<UserRecommendationsDto>(UserRecommendationsDto.class, dto);
-			
-			for (int i = 0; i < count && i < recommendations.size(); i++) {
-				dto.addRecommendation(Long.toString(recommendations.get(i)));
-			}
-			writeResponse(container, response, responseFormat);
-			response.setStatus(HttpServletResponse.SC_OK);
+			userId = Long.parseLong(parsed.getResourceMap().get("users"));
 		} catch (NumberFormatException e) {
-			throw new BadRequestException("Invalid User ID or Count Parameter", e);
+			throw new BadRequestException("Invalid User ID", e);
 		}
+		
+		SerializationFormat responseFormat = ServerUtils.determineResponseFormat(parsed, request.getHeader("Accept"));
+		List<Long> recommendations = session.getUserRecommendations(userId);
+		
+		int countParam = Integer.MAX_VALUE;
+		List<String> countParams = parsed.getParamMap().get("count");
+		if (countParams != null && !countParams.isEmpty()) {
+			try {
+				countParam = Integer.parseInt(countParams.get(0));
+			} catch (NumberFormatException e) {
+				throw new BadRequestException("Invalid Count Parameter");
+			}
+		}
+		
+		int count = Math.min(recommendations.size(), countParam);
+		UserRecommendationsDto dto = new UserRecommendationsDto(Long.toString(userId), count, 0);
+		DtoContainer<UserRecommendationsDto> container = new DtoContainer<UserRecommendationsDto>(UserRecommendationsDto.class, dto);		
+		for (long recommendationId : recommendations.subList(0, count)) {
+			dto.addRecommendation(Long.toString(recommendationId));
+		}
+		
+		writeResponse(container, response, responseFormat);
+		response.setStatus(HttpServletResponse.SC_OK);
 	}
 }

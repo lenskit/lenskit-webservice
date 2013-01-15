@@ -11,7 +11,10 @@ import org.grouplens.lenskit.webapp.ServerUtils.SerializationFormat;
 import org.grouplens.lenskit.webapp.dto.SystemStatisticsDto;
 import org.grouplens.lenskit.webapp.Session;
 
-//Invoked by calling GET /statistics
+/**
+ * A {@link RequestHandler} to service requests of the form
+ * GET /statistics
+ */
 public class GetSystemStatisticsRequestHandler extends RequestHandler {
 
 	public GetSystemStatisticsRequestHandler() {

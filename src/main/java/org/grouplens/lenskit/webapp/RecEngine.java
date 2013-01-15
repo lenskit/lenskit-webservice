@@ -120,7 +120,7 @@ public class RecEngine extends HttpServlet {
 			RequestHandler handler = manager.getHandler(method, parsed);
 			if (handler == null) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				out.println("Invalid URL");
+				throw new BadRequestException("Malformed URL");
 			} else {				
 				response.setCharacterEncoding("UTF-8");
 				handler.handle(session, parsed, request, response);

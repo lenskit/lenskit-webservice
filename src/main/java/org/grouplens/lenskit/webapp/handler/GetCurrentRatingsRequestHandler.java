@@ -15,7 +15,10 @@ import org.grouplens.lenskit.webapp.Session;
 import org.grouplens.lenskit.webapp.ServerUtils.SerializationFormat;
 import org.grouplens.lenskit.webapp.dto.RatingDto;
 
-//Invoked by calling GET /users/[uid]/currentRatings
+/**
+ * A {@link RequestHandler} to service requests of the form:
+ * GET /users/[uid]/currentRatings
+ */
 public class GetCurrentRatingsRequestHandler extends RequestHandler {
 
 	public GetCurrentRatingsRequestHandler() {
@@ -31,20 +34,22 @@ public class GetCurrentRatingsRequestHandler extends RequestHandler {
 
 	@Override
 	public void handle(Session session, ParsedUrl parsed, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		long uid;
 		try {
-			long uid = Long.parseLong(parsed.getResourceMap().get("users"));
-			SerializationFormat responseFormat = ServerUtils.determineResponseFormat(parsed, request.getHeader("Accept"));
-			Map<Long, Double> latestRatings = session.getCurrentUserRatings(uid);
-			List<RatingDto> ratings = new ArrayList<RatingDto>();
-			for (Map.Entry<Long, Double> e : latestRatings.entrySet()) {
-				ratings.add(new RatingDto(e.getKey().toString(), e.getValue()));
-			}
-
-			DtoContainer<RatingDto> container = new DtoContainer<RatingDto>(RatingDto.class, ratings);
-			writeResponse(container, response, responseFormat);
-			response.setStatus(HttpServletResponse.SC_OK);
+			uid = Long.parseLong(parsed.getResourceMap().get("users"));
 		} catch (NumberFormatException e) {
 			throw new BadRequestException("Invalid User ID", e);
 		}
+		
+		SerializationFormat responseFormat = ServerUtils.determineResponseFormat(parsed, request.getHeader("Accept"));
+		Map<Long, Double> latestRatings = session.getCurrentUserRatings(uid);
+		List<RatingDto> ratings = new ArrayList<RatingDto>();
+		for (Map.Entry<Long, Double> e : latestRatings.entrySet()) {
+			ratings.add(new RatingDto(e.getKey().toString(), e.getValue()));
+		}
+
+		DtoContainer<RatingDto> container = new DtoContainer<RatingDto>(RatingDto.class, ratings);
+		writeResponse(container, response, responseFormat);
+		response.setStatus(HttpServletResponse.SC_OK);
 	}
 }

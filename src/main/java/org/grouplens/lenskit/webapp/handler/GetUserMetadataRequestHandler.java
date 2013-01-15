@@ -13,7 +13,10 @@ import org.grouplens.lenskit.webapp.ServerUtils.SerializationFormat;
 import org.grouplens.lenskit.webapp.Session;
 import org.grouplens.lenskit.webapp.dto.UserDto;
 
-//Invoked by calling GET /users/[uid]
+/**
+ * A {@link RequestHandler} to service requests of the form:
+ * GET /users/[uid]
+ */
 public class GetUserMetadataRequestHandler extends RequestHandler {
 
 	public GetUserMetadataRequestHandler() {
@@ -28,16 +31,21 @@ public class GetUserMetadataRequestHandler extends RequestHandler {
 
 	@Override
 	public void handle(Session session, ParsedUrl parsed, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		long userId;
 		try {
-			long userId = Long.parseLong(parsed.getResourceMap().get("users"));
-			if (!session.containsUser(userId)) throw new ResourceNotFoundException("User " + userId + " does not exist.");
-			SerializationFormat responseFormat = ServerUtils.determineResponseFormat(parsed, request.getHeader("Accept"));
-			UserDto dto = new UserDto(Long.toString(userId));
-			DtoContainer<UserDto> container = new DtoContainer<UserDto>(UserDto.class, dto);
-			writeResponse(container, response, responseFormat);
-			response.setStatus(HttpServletResponse.SC_OK);
+			userId = Long.parseLong(parsed.getResourceMap().get("users"));
 		} catch (NumberFormatException e) {
 			throw new BadRequestException("Invalid User ID", e);
+		}		
+		if (!session.containsUser(userId)) {
+			throw new ResourceNotFoundException("User " + userId + " does not exist.");
 		}
+		
+		SerializationFormat responseFormat = ServerUtils.determineResponseFormat(parsed, request.getHeader("Accept"));
+		UserDto dto = new UserDto(Long.toString(userId));
+		DtoContainer<UserDto> container = new DtoContainer<UserDto>(UserDto.class, dto);
+		writeResponse(container, response, responseFormat);
+		response.setStatus(HttpServletResponse.SC_OK);
+
 	}
 }

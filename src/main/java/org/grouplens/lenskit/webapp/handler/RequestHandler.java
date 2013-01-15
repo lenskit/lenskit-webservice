@@ -34,10 +34,30 @@ public abstract class RequestHandler {
 		expectedResources = new ObjectArrayList<Resource>();
 	}
 		
+	/**
+	 * Determine the HTTP request method serviced by the handler.
+	 * @return The <tt>RequestMethod</tt> implemented by the handler.
+	 */
 	public abstract RequestMethod getMethod();
 
+	/**
+	 * Process and carry out the specified request, performing any
+	 * necessary back-end operations.
+	 * @param session The backing data session for the handler.
+	 * @param parsed The parsed URL of the request.
+	 * @param request The request.
+	 * @param response The handler's response to the request.
+	 * @throws Exception
+	 */
 	public abstract void handle(Session session, ParsedUrl parsed, HttpServletRequest request, HttpServletResponse response) throws Exception;
 	
+	/**
+	 * Determine if the form of a request's URL matches a handler's expected 
+	 * form. If so, then the request will be directed to this handler.
+	 * @param urlResources The resources specified in a URL.
+	 * @return <tt>true</tt> if the URL's form matches the handler's expected form,
+	 * <tt>false</tt> otherwise.
+	 */
 	public boolean isCorrectHandler(Map<String, String> urlResources) {
 		if (expectedResources.size() != urlResources.size()) {
 			return false;
@@ -48,10 +68,16 @@ public abstract class RequestHandler {
 			while (expected.hasNext()) {
 				Resource r = expected.next();
 				Map.Entry<String, String> e = parsed.next();
-				if (!r.getName().equals(e.getKey())) return false;
+				if (!r.getName().equals(e.getKey())) {
+					return false;
+				}
 				else {
-					if (r.requiresValue() && e.getValue() == null) return false;
-					else if (!r.requiresValue() && e.getValue() != null) return false;
+					if (r.requiresValue() && e.getValue() == null) {
+						return false;
+					}
+					else if (!r.requiresValue() && e.getValue() != null) {
+						return false;
+					}
 				}
 			}
 			return true;
@@ -81,6 +107,11 @@ public abstract class RequestHandler {
 		}
 	}
 	
+	/**
+	 * Retrieve the names of all components expected to appear in the URL of a
+	 * request intended for a handler.
+	 * @return A list of component names.
+	 */
 	public List<String> getResourceList() {
 		ObjectArrayList<String> resList = new ObjectArrayList<String>();
 		for (Resource r : expectedResources) {

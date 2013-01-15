@@ -99,7 +99,7 @@ public class ServerUtils {
 					// Both JSON and XML are accepted, but JSON is preferred
 					return SerializationFormat.JSON;
 				} else {
-					// Both JSON and XML are accepepted, but XML is preferred
+					// Both JSON and XML are accepted, but XML is preferred
 					return SerializationFormat.XML;
 				}
 			}

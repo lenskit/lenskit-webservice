@@ -19,7 +19,10 @@ import org.grouplens.lenskit.webapp.ServerUtils;
 import org.grouplens.lenskit.webapp.Session;
 import org.grouplens.lenskit.webapp.dto.UserEventsDto;
 
-//Invoked by calling GET /users/[uid]/events
+/**
+ * A {@link RequestHandler} to service requests of the form: 
+ * GET /users/[uid]/events
+ */
 public class GetUserEventsRequestHandler extends RequestHandler {
 
 	public GetUserEventsRequestHandler() {
@@ -35,56 +38,66 @@ public class GetUserEventsRequestHandler extends RequestHandler {
 
 	@Override
 	public void handle(Session session, ParsedUrl parsed, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		long userId;
 		try {
-			long uid = Long.parseLong(parsed.getResourceMap().get("users"));
-			SerializationFormat responseFormat = ServerUtils.determineResponseFormat(parsed, request.getHeader("Accept"));
-			List<Event> events;
-			boolean excludeNull = (parsed.getParamMap().get("null") != null && parsed.getParamMap().get("null").size() == 1
-										&& parsed.getParamMap().get("null").get(0).equalsIgnoreCase("false"));
-			List<String> iids = parsed.getParamMap().get("item");
-			if (iids != null) {
-				Set<Long> itemIds = new LongOpenHashSet();
+			userId = Long.parseLong(parsed.getResourceMap().get("users"));
+		} catch(NumberFormatException e) {
+			throw new BadRequestException("Invalid User ID", e);
+		}
+		
+		SerializationFormat responseFormat = ServerUtils.determineResponseFormat(parsed, request.getHeader("Accept"));
+		List<Event> events;
+		boolean excludeNull = parsed.getParamMap().get("null") != null &&
+							  parsed.getParamMap().get("null").size() == 1 &&
+							  parsed.getParamMap().get("null").get(0).equalsIgnoreCase("false");
+		
+		List<String> iids = parsed.getParamMap().get("item");
+		if (iids != null) {
+			Set<Long> itemIds = new LongOpenHashSet();
+			try {
 				for (String str : iids) {
 					itemIds.add(Long.parseLong(str));
 				}
-				events = session.getUserEvents(uid, itemIds);
-			} else {
-				events = session.getUserEvents(uid);
+			} catch (NumberFormatException e) {
+				throw new BadRequestException("Invalid Item ID");
 			}
-			if (excludeNull) {
-				ObjectArrayList<Event> toBeRemoved = new ObjectArrayList<Event>();
-				for (Event evt : events) {
-					if (evt instanceof Rating) {
-						Rating r = (Rating)evt;
-						if (r.getPreference() == null)
-							toBeRemoved.add(evt);
-					}
-				}
-				events.removeAll(toBeRemoved);
-			}
-			UserEventsDto userEvents = new UserEventsDto(Long.toString(uid), events.size(), 0);
+			events = session.getUserEvents(userId, itemIds);
+		} else {
+			events = session.getUserEvents(userId);
+		}
+		if (excludeNull) {
+			ObjectArrayList<Event> toBeRemoved = new ObjectArrayList<Event>();
 			for (Event evt : events) {
-				String eid = Long.toString(evt.getId());
-				String iid = Long.toString(evt.getItemId());
-				String _rid = session.getEventRevId(evt.getId());
-				long timestamp = evt.getTimestamp();
 				if (evt instanceof Rating) {
 					Rating r = (Rating)evt;
-					if (r.getPreference() != null) {
-						userEvents.addEvent("rating", eid, iid, timestamp, r.getPreference().getValue(), _rid);
+					if (r.getPreference() == null) {
+						toBeRemoved.add(evt);
 					}
-					else if (!excludeNull) {
-						userEvents.addEvent("unrating", eid, iid, timestamp, _rid);
-					}
-				} else {
-					userEvents.addEvent("event", eid, iid, timestamp, _rid);
 				}
 			}
-			DtoContainer<UserEventsDto> container = new DtoContainer<UserEventsDto>(UserEventsDto.class, userEvents);
-			writeResponse(container, response, responseFormat);
-			response.setStatus(HttpServletResponse.SC_OK);
-		} catch(NumberFormatException e) {
-			throw new BadRequestException("Invalid Event ID", e);
+			events.removeAll(toBeRemoved);
 		}
+		
+		UserEventsDto userEvents = new UserEventsDto(Long.toString(userId), events.size(), 0);
+		for (Event evt : events) {
+			String eid = Long.toString(evt.getId());
+			String iid = Long.toString(evt.getItemId());
+			String _rid = session.getEventRevId(evt.getId());
+			long timestamp = evt.getTimestamp();
+			if (evt instanceof Rating) {
+				Rating r = (Rating)evt;
+				if (r.getPreference() != null) {
+					userEvents.addEvent("rating", eid, iid, timestamp, r.getPreference().getValue(), _rid);
+				}
+				else if (!excludeNull) {
+					userEvents.addEvent("unrating", eid, iid, timestamp, _rid);
+				}
+			} else {
+				userEvents.addEvent("event", eid, iid, timestamp, _rid);
+			}
+		}
+		DtoContainer<UserEventsDto> container = new DtoContainer<UserEventsDto>(UserEventsDto.class, userEvents);
+		writeResponse(container, response, responseFormat);
+		response.setStatus(HttpServletResponse.SC_OK);
 	}
 }
