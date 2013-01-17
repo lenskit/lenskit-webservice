@@ -15,6 +15,8 @@ import java.util.Map;
 import org.grouplens.common.dto.Dto;
 import org.grouplens.common.dto.DtoContainer;
 import org.grouplens.common.dto.DtoContentHandler;
+import org.grouplens.lenskit.core.LenskitRecommenderEngine;
+import org.grouplens.lenskit.core.LenskitRecommenderEngineFactory;
 import org.grouplens.lenskit.data.Event;
 import org.grouplens.lenskit.data.event.Rating;
 import org.grouplens.lenskit.webapp.ServerUtils.ParsedUrl;
@@ -35,6 +37,7 @@ import org.grouplens.lenskit.webapp.dto.UserRatingsDto;
 import org.grouplens.lenskit.webapp.dto.UserRecommendationsDto;
 import org.grouplens.lenskit.webapp.dto.UserStatisticsDto;
 import org.grouplens.lenskit.webapp.handler.AddRatingRequestHandler;
+import org.grouplens.lenskit.webapp.handler.DeleteRatingRequestHandler;
 import org.grouplens.lenskit.webapp.handler.GetCurrentRatingsRequestHandler;
 import org.grouplens.lenskit.webapp.handler.GetEventRequestHandler;
 import org.grouplens.lenskit.webapp.handler.GetItemEventsRequestHandler;
@@ -49,6 +52,7 @@ import org.grouplens.lenskit.webapp.handler.GetUserRatingsRequestHandler;
 import org.grouplens.lenskit.webapp.handler.GetUserRecommendationsRequestHandler;
 import org.grouplens.lenskit.webapp.handler.GetUserStatisticsRequestHandler;
 import org.grouplens.lenskit.webapp.handler.RequestHandler;
+import org.grouplens.lenskit.webapp.handler.RequestHandler.RequestMethod;
 import org.grouplens.lenskit.webapp.handler.RequestHandlerManager;
 import org.junit.After;
 import org.junit.Assert;
@@ -64,8 +68,47 @@ public abstract class AbstractRequestHandlerTest {
 	protected String acceptHeader;
 	protected String contentType;
 	protected DtoContentHandler contentHandler;
+	
 	public static final double EPSILON = 1.0e-6;
+	
+	private MockHttpServletRequest request;
+	private MockHttpServletResponse response;
+	
+	private static final String CONTEXT_PATH = "/lenskit";
 
+	// Intended to be called by setup methods in subclasses
+	public void init() throws Exception {
+		String filePath = ServerUtils.getFilePath(this.getClass(), "recServer.properties");
+		Configuration config = new Configuration(filePath);
+		LenskitRecommenderEngineFactory factory = config.getLenskitRecommenderEngineFactory();
+		LenskitRecommenderEngine engine = factory.create();
+		session = new Session(engine.open());
+		manager = new RequestHandlerManager();
+		manager.addHandler(new AddRatingRequestHandler());
+		manager.addHandler(new DeleteRatingRequestHandler());
+		manager.addHandler(new GetCurrentRatingsRequestHandler());
+		manager.addHandler(new GetEventRequestHandler());
+		manager.addHandler(new GetItemEventsRequestHandler());
+		manager.addHandler(new GetItemMetadataRequestHandler());
+		manager.addHandler(new GetItemRatingsRequestHandler());
+		manager.addHandler(new GetItemStatisticsRequestHandler());
+		manager.addHandler(new GetSystemStatisticsRequestHandler());
+		manager.addHandler(new GetUserEventsRequestHandler());
+		manager.addHandler(new GetUserMetadataRequestHandler());
+		manager.addHandler(new GetUserPredictionsRequestHandler());
+		manager.addHandler(new GetUserRatingsRequestHandler());
+		manager.addHandler(new GetUserRecommendationsRequestHandler());
+		manager.addHandler(new GetUserStatisticsRequestHandler());
+		
+		request = new MockHttpServletRequest();
+		request.setContextPath(CONTEXT_PATH);
+		request.setCharacterEncoding("UTF-8");
+		request.setContentType(contentType);
+		request.setHeader("Accept", acceptHeader);
+		
+		response = new MockHttpServletResponse();
+	}
+	
 	@After
 	public void cleanUp() {
 		session.close();
@@ -73,21 +116,15 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testAddRatingRequestHandler() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/users/938/events/ratings");
-		request.setContextPath("/webapp");
+		request.setRequestURI(CONTEXT_PATH + "/users/938/events/ratings");
 		request.setMethod("POST");
 		DtoContainer<RatingDto> container = new DtoContainer<RatingDto>(RatingDto.class, false);
 		container.set(new RatingDto("105", "938", "8192", (long) 35700, 4.5));
 		String requestBody = contentHandler.toString(container);
 		request.setBodyContent(requestBody);
-		request.setCharacterEncoding("UTF-8");
 		request.setContentLength(requestBody.length());
-		request.setContentType(contentType);
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new AddRatingRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.POST, parsed);
 		handler.handle(session, parsed, request, response);
 		response.flushBuffer();
 		container.clear();
@@ -100,23 +137,16 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetCurrentRatingsRequestHandler() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/users/23/currentRatings");
-		request.setContextPath("/webapp");
+		request.setRequestURI(CONTEXT_PATH + "/users/23/currentRatings");
 		request.setMethod("GET");
-		request.setCharacterEncoding("UTF-8");
-		request.setContentType(contentType);
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetCurrentRatingsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
 		DtoContainer<RatingDto> result = new DtoContainer<RatingDto>(RatingDto.class, true);
 		contentHandler.fromString(response.getOutputStreamContent(), result);
 		List<RatingDto> ratingDtos = result.get();
-		assertEquals(2, ratingDtos.size());
 		assertEquals(2, ratingDtos.size());
 		Object2DoubleOpenHashMap<String> ratings = new Object2DoubleOpenHashMap<String>(2);
 		for (RatingDto dto : ratingDtos) {
@@ -129,14 +159,10 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetEventRequestHandler() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/events/45");
-		request.setContextPath("/webapp");
+		request.setRequestURI(CONTEXT_PATH + "/events/45");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetEventRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -156,14 +182,10 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetItemEventsRequestHandler() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/items/256/events");
-		request.setContextPath("/webapp");
+		request.setRequestURI(CONTEXT_PATH + "/items/256/events");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetItemEventsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -194,15 +216,11 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetItemEventsRequestHandler2() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/items/256/events?user=23&user=735&user=306");
-		request.setContextPath("/webapp");
+		request.setRequestURI(CONTEXT_PATH + "/items/256/events");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		request.setQueryString("user=23&user=735&user=306");
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetItemEventsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -234,15 +252,11 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetItemEventsRequestHandler3() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/items/256/events?user=23&user=735&user=306&null=false");
-		request.setContextPath("/webapp");
+		request.setRequestURI(CONTEXT_PATH + "/items/256/events");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		request.setQueryString("user=23&user=735&user=306&null=false");
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetItemEventsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed); 
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -274,14 +288,10 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetItemMetadataRequestHandler() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/items/512");
-		request.setContextPath("/webapp");
+		request.setRequestURI(CONTEXT_PATH + "/items/512");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetItemMetadataRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -294,14 +304,10 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetItemRatingsRequestHandler() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/items/256/events/ratings");
-		request.setContextPath("/webapp");
+		request.setRequestURI(CONTEXT_PATH + "/items/256/events/ratings");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetItemRatingsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -325,15 +331,11 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetItemRatingsRequestHandler2() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/items/256/events/ratings?user=23&user=735&user=306");
-		request.setContextPath("/webapp");
+		request.setRequestURI(CONTEXT_PATH + "/items/256/events/ratings");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		request.setQueryString("user=23&user=735&user=306");
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetItemRatingsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -358,15 +360,11 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetItemRatingsRequestHandler3() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/items/256/events/ratings?user=23&user=735&user=306&null=false");
-		request.setContextPath("/webapp");
+		request.setRequestURI(CONTEXT_PATH + "/items/256/events/ratings");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		request.setQueryString("user=23&user=735&user=306&null=false");
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetItemRatingsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -393,14 +391,10 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetItemStatisticsDto() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/items/256/statistics");
-		request.setContextPath("/webapp");
+		request.setRequestURI(CONTEXT_PATH + "/items/256/statistics");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetItemStatisticsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -413,14 +407,10 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testSystemStatisticsDto() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/statistics");
-		request.setContextPath("/webapp");
+		request.setRequestURI(CONTEXT_PATH + "/statistics");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetSystemStatisticsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -436,14 +426,10 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetUserEventsRequestHandler() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/users/23/events");
-		request.setContextPath("/webapp");
+		request.setRequestURI(CONTEXT_PATH + "/users/23/events");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetUserEventsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -474,15 +460,11 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetUserEventsRequestHandler2() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/users/23/events?item=256&item=1024");
+		request.setRequestURI(CONTEXT_PATH + "/users/23/events");
 		request.setQueryString("item=256&item=1024");
-		request.setContextPath("/webapp");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetUserEventsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -514,15 +496,11 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetUserEventsRequestHandler3() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/users/23/events?item=256&item=1024&null=false");
+		request.setRequestURI(CONTEXT_PATH + "/users/23/events");
 		request.setQueryString("item=256&item=1024&null=false");
-		request.setContextPath("/webapp");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetUserEventsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -554,14 +532,10 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetUserMetadataRequestHandler() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/users/23");
-		request.setContextPath("/webapp");
+		request.setRequestURI(CONTEXT_PATH + "/users/23");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetUserMetadataRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -574,14 +548,10 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetUserPredictionsActionHandler() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/users/23/predictions");
-		request.setContextPath("/webapp");
+		request.setRequestURI(CONTEXT_PATH + "/users/23/predictions");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetUserPredictionsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -604,15 +574,11 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetUserPredictionsActionHandler2() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/users/23/predictions?item=1024&item=8192");
+		request.setRequestURI(CONTEXT_PATH + "/users/23/predictions");
 		request.setQueryString("item=1024&item=8192");
-		request.setContextPath("/webapp");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetUserPredictionsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -636,15 +602,11 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetUserPredictionsActionHandler3() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/users/23/predictions?useStoredRatings=true");
+		request.setRequestURI(CONTEXT_PATH + "/users/23/predictions");
 		request.setQueryString("useStoredRatings=true");
-		request.setContextPath("/webapp");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetUserPredictionsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -658,7 +620,9 @@ public abstract class AbstractRequestHandlerTest {
 		Map<Long, Double> userPredictions = session.getUserPredictions(23);
 		for (PreferenceDto pref : dto.preferences){
 			if (pref.type.equals("prediction")) {
-				assertTrue(userPredictions.containsKey(Long.parseLong(pref.item)));
+				Double predictionValue = userPredictions.get(Long.parseLong(pref.item));
+				assertNotNull(predictionValue);
+				assertEquals(predictionValue, pref.value, EPSILON);
 			} else {
 				Double ratingValue = userRatings.get(Long.parseLong(pref.item));
 				assertNotNull(ratingValue);
@@ -669,15 +633,11 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetUserPredictionsActionHandler4() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/users/23/predictions?item=8192&item=32&item=1024&item=2048&useStoredRatings=true");
+		request.setRequestURI(CONTEXT_PATH + "/users/23/predictions");
 		request.setQueryString("item=8192&item=32&item=1024&item=2048&useStoredRatings=true");
-		request.setContextPath("/webapp");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetUserPredictionsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -703,14 +663,10 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetUserRatingsRequestHandler() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/users/23/events/ratings");
-		request.setContextPath("/webapp");
+		request.setRequestURI(CONTEXT_PATH + "/users/23/events/ratings");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetUserRatingsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -734,15 +690,11 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetUserRatingsRequestHandler2() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/users/23/events/ratings?item=256&item=1024");
+		request.setRequestURI(CONTEXT_PATH + "/users/23/events/ratings");
 		request.setQueryString("item=256&item=1024");
-		request.setContextPath("/webapp");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetUserRatingsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -767,15 +719,11 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetUserRatingsRequestHandler3() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/users/23/events?item=256&item=1024&null=false");
+		request.setRequestURI(CONTEXT_PATH + "/users/23/events/ratings");
 		request.setQueryString("item=256&item=1024&null=false");
-		request.setContextPath("/webapp");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetUserRatingsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
@@ -802,18 +750,15 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetUserRecommendationsHandler() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/users/938/recommendations");
-		request.setContextPath("/webapp");
+		request.setRequestURI(CONTEXT_PATH + "/users/938/recommendations");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetUserRecommendationsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
-		DtoContainer<UserRecommendationsDto> container = new DtoContainer<UserRecommendationsDto>(UserRecommendationsDto.class, false);
+		DtoContainer<UserRecommendationsDto> container =
+				new DtoContainer<UserRecommendationsDto>(UserRecommendationsDto.class, false);
 		contentHandler.fromString(response.getOutputStreamContent(), container);
 		UserRecommendationsDto actual = container.getSingle();
 		UserRecommendationsDto expected = new UserRecommendationsDto("938", 5, 0);
@@ -825,19 +770,16 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetUserRecommendationsHandler2() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/users/23/recommendations?count=2");
+		request.setRequestURI(CONTEXT_PATH + "/users/23/recommendations");
 		request.setQueryString("count=2");
-		request.setContextPath("/webapp");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetUserRecommendationsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
-		DtoContainer<UserRecommendationsDto> container = new DtoContainer<UserRecommendationsDto>(UserRecommendationsDto.class, false);
+		DtoContainer<UserRecommendationsDto> container = 
+				new DtoContainer<UserRecommendationsDto>(UserRecommendationsDto.class, false);
 		contentHandler.fromString(response.getOutputStreamContent(), container);
 		UserRecommendationsDto actual = container.getSingle();
 		assertTrue(actual.count.intValue() <= 2);
@@ -845,34 +787,27 @@ public abstract class AbstractRequestHandlerTest {
 
 	@Test
 	public void testGetUserRecommendationsHandler3() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/users/23/recommendations?count=100");
-		request.setQueryString("count=100");
-		request.setContextPath("/webapp");
+		request.setRequestURI(CONTEXT_PATH + "/users/23/recommendations");
+		request.setQueryString("count=5");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetUserRecommendationsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();
-		DtoContainer<UserRecommendationsDto> container = new DtoContainer<UserRecommendationsDto>(UserRecommendationsDto.class, false);
+		DtoContainer<UserRecommendationsDto> container = 
+				new DtoContainer<UserRecommendationsDto>(UserRecommendationsDto.class, false);
 		contentHandler.fromString(response.getOutputStreamContent(), container);
 		UserRecommendationsDto actual = container.getSingle();
-		assertTrue(actual.count.intValue() <= 100);
+		assertTrue(actual.count.intValue() <= 5);
 	}
 
 	@Test
 	public void testGetUserStatisticsRequestHandler() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setRequestURI("/webapp/users/23/statistics");
-		request.setContextPath("/webapp");
+		request.setRequestURI(CONTEXT_PATH + "/users/23/statistics");
 		request.setMethod("GET");
-		request.setHeader("Accept", acceptHeader);
 		ParsedUrl parsed = ServerUtils.parseUrl(request, manager.getDefinedResources());
-		RequestHandler handler = new GetUserStatisticsRequestHandler();
-		MockHttpServletResponse response = new MockHttpServletResponse();
+		RequestHandler handler = manager.getHandler(RequestMethod.GET, parsed);
 		handler.handle(session, parsed, request, response);
 		assertEquals(MockHttpServletResponse.SC_OK, response.getStatusCode());
 		response.flushBuffer();

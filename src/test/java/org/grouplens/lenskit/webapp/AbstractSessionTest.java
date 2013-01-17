@@ -43,7 +43,8 @@ public abstract class AbstractSessionTest {
 		assertNotNull(session.getEventRevId(result.getId()));
 	}
 
-	@Test public void testAddRating() throws ResourceNotFoundException {
+	@Test 
+	public void testAddRating() throws ResourceNotFoundException {
 		SimpleRating r = new SimpleRating(1, 2, 3, 4.0, 5000);
 		session.addRating(r);
 		Rating result = session.getRating(1);

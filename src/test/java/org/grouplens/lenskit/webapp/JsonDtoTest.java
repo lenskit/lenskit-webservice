@@ -8,7 +8,6 @@ public class JsonDtoTest extends AbstractDtoTest {
 	@Before
 	public void setup() {
 		contentHandler = new JsonDtoContentHandler();
-		showOutput = false;
 	}
 }
 	

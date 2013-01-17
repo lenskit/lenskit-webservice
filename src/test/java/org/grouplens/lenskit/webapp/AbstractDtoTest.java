@@ -26,18 +26,12 @@ import org.junit.Test;
 public abstract class AbstractDtoTest {
 
 	protected DtoContentHandler contentHandler;
-	protected boolean showOutput;
 
 	@Test
 	public void testUserDto() throws Exception {
 		UserDto expected = new UserDto("516");
 		DtoContainer<UserDto> container = new DtoContainer<UserDto>(UserDto.class, expected);
-
 		String output = contentHandler.toString(container);
-		if (showOutput) {
-		System.out.println(output + "\n");
-		}
-		
 		DtoContainer<UserDto> result = new DtoContainer<UserDto>(UserDto.class);
 		contentHandler.fromString(output, result);
 		assertDtoEquals(expected, result.getSingle());
@@ -46,14 +40,11 @@ public abstract class AbstractDtoTest {
 	@Test
 	public void testUserStatisticsDto() throws Exception {
 		UserStatisticsDto expected = new UserStatisticsDto("516", 632, 532, 3.4);
-		DtoContainer<UserStatisticsDto> container = new DtoContainer<UserStatisticsDto>(UserStatisticsDto.class, expected);
-		
+		DtoContainer<UserStatisticsDto> container =
+				new DtoContainer<UserStatisticsDto>(UserStatisticsDto.class, expected);		
 		String output = contentHandler.toString(container);
-		if (showOutput) {
-		System.out.println(output + "\n");
-		}
-		
-		DtoContainer<UserStatisticsDto> result = new DtoContainer<UserStatisticsDto>(UserStatisticsDto.class);
+		DtoContainer<UserStatisticsDto> result = 
+				new DtoContainer<UserStatisticsDto>(UserStatisticsDto.class);
 		contentHandler.fromString(output, result);
 		assertDtoEquals(expected, result.getSingle());
 	}
@@ -64,14 +55,11 @@ public abstract class AbstractDtoTest {
 		expected.addPrediction("1024", 3.13);
 		expected.addPrediction("4096", 2.75);
 		expected.addPrediction("7890", 4.77);
-		DtoContainer<UserPredictionsDto> container = new DtoContainer<UserPredictionsDto>(UserPredictionsDto.class, expected);
-
-		String output = contentHandler.toString(container);
-		if (showOutput) {
-		System.out.println(output + "\n");
-		}
-		
-		DtoContainer<UserPredictionsDto> result = new DtoContainer<UserPredictionsDto>(UserPredictionsDto.class);
+		DtoContainer<UserPredictionsDto> container =
+				new DtoContainer<UserPredictionsDto>(UserPredictionsDto.class, expected);
+		String output = contentHandler.toString(container);		
+		DtoContainer<UserPredictionsDto> result =
+				new DtoContainer<UserPredictionsDto>(UserPredictionsDto.class);
 		contentHandler.fromString(output, result);
 		assertDtoEquals(expected, result.getSingle());
 	}
@@ -83,14 +71,11 @@ public abstract class AbstractDtoTest {
 		expected.addPreference("4096", "prediction", 2.75);
 		expected.addPreference("7890", "rating", 4.77);
 		expected.addPreference("4567", "prediction", 1.75);
-
-		DtoContainer<UserPreferencesDto> container = new DtoContainer<UserPreferencesDto>(UserPreferencesDto.class, expected);
-		String output = contentHandler.toString(container);
-		if (showOutput) {
-			System.out.println(output + "\n");
-		}
-		
-		DtoContainer<UserPreferencesDto> result = new DtoContainer<UserPreferencesDto>(UserPreferencesDto.class);
+		DtoContainer<UserPreferencesDto> container =
+				new DtoContainer<UserPreferencesDto>(UserPreferencesDto.class, expected);
+		String output = contentHandler.toString(container);		
+		DtoContainer<UserPreferencesDto> result =
+				new DtoContainer<UserPreferencesDto>(UserPreferencesDto.class);
 		contentHandler.fromString(output, result);
 		assertDtoEquals(expected, result.getSingle());
 	}
@@ -102,14 +87,11 @@ public abstract class AbstractDtoTest {
 		expected.addRecommendation("2");
 		expected.addRecommendation("3");
 		expected.addRecommendation("4");
-		DtoContainer<UserRecommendationsDto> container = new DtoContainer<UserRecommendationsDto>(UserRecommendationsDto.class, expected);
-
-		String output = contentHandler.toString(container);
-		if (showOutput) {
-			System.out.println(output + "\n");
-		}
-		
-		DtoContainer<UserRecommendationsDto> result = new DtoContainer<UserRecommendationsDto>(UserRecommendationsDto.class);
+		DtoContainer<UserRecommendationsDto> container =
+				new DtoContainer<UserRecommendationsDto>(UserRecommendationsDto.class, expected);
+		String output = contentHandler.toString(container);		
+		DtoContainer<UserRecommendationsDto> result =
+				new DtoContainer<UserRecommendationsDto>(UserRecommendationsDto.class);
 		contentHandler.fromString(output, result);
 		assertDtoEquals(expected, result.getSingle());
 	}
@@ -122,14 +104,11 @@ public abstract class AbstractDtoTest {
 		expected.addEvent("rating", "0480", "8192", 50000, 3.0, "ccc");
 		expected.addEvent("purchase", "0550", "2048", 19000, "ddd");
 		expected.addEvent("unrating", "0880", "4096", 15000, "eee");
-		DtoContainer<UserEventsDto> container = new DtoContainer<UserEventsDto>(UserEventsDto.class, expected);
-		
+		DtoContainer<UserEventsDto> container =
+				new DtoContainer<UserEventsDto>(UserEventsDto.class, expected);		
 		String output = contentHandler.toString(container);
-		if (showOutput) {
-			System.out.println(output + "\n");
-		}
-		
-		DtoContainer<UserEventsDto> result = new DtoContainer<UserEventsDto>(UserEventsDto.class);
+		DtoContainer<UserEventsDto> result =
+				new DtoContainer<UserEventsDto>(UserEventsDto.class);
 		contentHandler.fromString(output, result);
 		assertDtoEquals(expected, result.getSingle());
 	}
@@ -142,14 +121,11 @@ public abstract class AbstractDtoTest {
 		expected.addRating("0443", "1024", 54000, 3.50, "ccc");
 		expected.addRating("0555", "4096", 33000, 3.75, "ddd");
 		expected.addRating("0665", "4096", 44000, null, "eee");
-		DtoContainer<UserRatingsDto> container = new DtoContainer<UserRatingsDto>(UserRatingsDto.class, expected);
-		
+		DtoContainer<UserRatingsDto> container =
+				new DtoContainer<UserRatingsDto>(UserRatingsDto.class, expected);		
 		String output = contentHandler.toString(container);
-		if (showOutput) {
-			System.out.println(output + "\n");
-		}
-
-		DtoContainer<UserRatingsDto> result = new DtoContainer<UserRatingsDto>(UserRatingsDto.class);
+		DtoContainer<UserRatingsDto> result =
+				new DtoContainer<UserRatingsDto>(UserRatingsDto.class);
 		contentHandler.fromString(output, result);
 		assertDtoEquals(expected, result.getSingle());;
 	}
@@ -161,13 +137,11 @@ public abstract class AbstractDtoTest {
 		expected.addPurchase("0234", "512", 65000);
 		expected.addPurchase("0555", "4096", 55000);
 
-		DtoContainer<UserPurchasesDto> container = new DtoContainer<UserPurchasesDto>(UserPurchasesDto.class, expected);
-		String output = contentHandler.toString(container);
-		if (showOutput) {
-			System.out.println(output + "\n");
-		}
-		
-		DtoContainer<UserPurchasesDto> result = new DtoContainer<UserPurchasesDto>(UserPurchasesDto.class);
+		DtoContainer<UserPurchasesDto> container =
+				new DtoContainer<UserPurchasesDto>(UserPurchasesDto.class, expected);
+		String output = contentHandler.toString(container);	
+		DtoContainer<UserPurchasesDto> result =
+				new DtoContainer<UserPurchasesDto>(UserPurchasesDto.class);
 		contentHandler.fromString(output, result);
 		assertDtoEquals(expected, result.getSingle());		
 	}
@@ -175,14 +149,11 @@ public abstract class AbstractDtoTest {
 	@Test
 	public void testItemStatisticsDto() throws Exception {
 		ItemStatisticsDto expected = new ItemStatisticsDto("1024", 700, 600, 4.8);
-		DtoContainer<ItemStatisticsDto> container = new DtoContainer<ItemStatisticsDto>(ItemStatisticsDto.class, expected);
-		
+		DtoContainer<ItemStatisticsDto> container =
+				new DtoContainer<ItemStatisticsDto>(ItemStatisticsDto.class, expected);		
 		String output = contentHandler.toString(container);
-		if (showOutput) {
-			System.out.println(output + "\n");
-		}
-
-		DtoContainer<ItemStatisticsDto> result = new DtoContainer<ItemStatisticsDto>(ItemStatisticsDto.class);
+		DtoContainer<ItemStatisticsDto> result =
+				new DtoContainer<ItemStatisticsDto>(ItemStatisticsDto.class);
 		contentHandler.fromString(output, result);
 		assertDtoEquals(expected, result.getSingle());
 	}
@@ -194,14 +165,11 @@ public abstract class AbstractDtoTest {
 		expected.addEvent("purchase", "0500", "408", 35000, "bbb");
 		expected.addEvent("rating", "0480", "372", 50000, 3.0, "ccc");
 		expected.addEvent("purchase", "0550", "987", 19000, "ddd");
-		DtoContainer<ItemEventsDto> container = new DtoContainer<ItemEventsDto>(ItemEventsDto.class, expected);
-		
-		String output = contentHandler.toString(container);
-		if (showOutput) {
-			System.out.println(output + "\n");
-		}
-		
-		DtoContainer<ItemEventsDto> result = new DtoContainer<ItemEventsDto>(ItemEventsDto.class);
+		DtoContainer<ItemEventsDto> container =
+				new DtoContainer<ItemEventsDto>(ItemEventsDto.class, expected);		
+		String output = contentHandler.toString(container);		
+		DtoContainer<ItemEventsDto> result =
+				new DtoContainer<ItemEventsDto>(ItemEventsDto.class);
 		contentHandler.fromString(output, result);
 		assertDtoEquals(expected, result.getSingle());
 	}
@@ -214,14 +182,11 @@ public abstract class AbstractDtoTest {
 		expected.addRating("0443", "789", 54000, 3.50, "ccc");
 		expected.addRating("0555", "565", 33000, 3.75, "eee");
 		expected.addRating("0656", "323", 44000, null, "fff");
-		DtoContainer<ItemRatingsDto> container = new DtoContainer<ItemRatingsDto>(ItemRatingsDto.class, expected);
-		
+		DtoContainer<ItemRatingsDto> container =
+				new DtoContainer<ItemRatingsDto>(ItemRatingsDto.class, expected);		
 		String output = contentHandler.toString(container);
-		if (showOutput) {
-			System.out.println(output + "\n");
-		}
-
-		DtoContainer<ItemRatingsDto> result = new DtoContainer<ItemRatingsDto>(ItemRatingsDto.class);
+		DtoContainer<ItemRatingsDto> result =
+				new DtoContainer<ItemRatingsDto>(ItemRatingsDto.class);
 		contentHandler.fromString(output, result);
 		assertDtoEquals(expected, result.getSingle());
 	}
@@ -233,14 +198,11 @@ public abstract class AbstractDtoTest {
 		expected.addPurchase("0234", "484", 65000);
 		expected.addPurchase("0443", "789", 54000);
 		expected.addPurchase("0555", "565", 33000);
-		DtoContainer<ItemPurchasesDto> container = new DtoContainer<ItemPurchasesDto>(ItemPurchasesDto.class, expected);
-		
+		DtoContainer<ItemPurchasesDto> container =
+				new DtoContainer<ItemPurchasesDto>(ItemPurchasesDto.class, expected);	
 		String output = contentHandler.toString(container);
-		if (showOutput) {
-			System.out.println(output + "\n");
-		}
-
-		DtoContainer<ItemPurchasesDto> result = new DtoContainer<ItemPurchasesDto>(ItemPurchasesDto.class);
+		DtoContainer<ItemPurchasesDto> result =
+				new DtoContainer<ItemPurchasesDto>(ItemPurchasesDto.class);
 		contentHandler.fromString(output, result);
 		assertDtoEquals(expected, result.getSingle());
 	}
@@ -248,13 +210,9 @@ public abstract class AbstractDtoTest {
 	@Test
 	public void testEventDto() throws Exception {
 		EventDto expected = new EventDto("purchase", "0310", "516", "1024", 33000, "abcd");
-
-		DtoContainer<EventDto> container = new DtoContainer<EventDto>(EventDto.class, expected);
-		String output = contentHandler.toString(container);
-		if (showOutput) {
-			System.out.println(output + "\n");
-		}
-		
+		DtoContainer<EventDto> container =
+				new DtoContainer<EventDto>(EventDto.class, expected);
+		String output = contentHandler.toString(container);		
 		DtoContainer<EventDto> result = new DtoContainer<EventDto>(EventDto.class);
 		contentHandler.fromString(output, result);
 		assertDtoEquals(expected, result.getSingle());
@@ -263,14 +221,11 @@ public abstract class AbstractDtoTest {
 	@Test
 	public void testStatisticsDto() throws Exception {
 		SystemStatisticsDto expected = new SystemStatisticsDto(6300, 180000, 439000);
-		DtoContainer<SystemStatisticsDto> container = new DtoContainer<SystemStatisticsDto>(SystemStatisticsDto.class, expected);
-		
+		DtoContainer<SystemStatisticsDto> container =
+				new DtoContainer<SystemStatisticsDto>(SystemStatisticsDto.class, expected);		
 		String output = contentHandler.toString(container);
-		if (showOutput) {
-			System.out.println(output + "\n");
-		}
-		
-		DtoContainer<SystemStatisticsDto> result = new DtoContainer<SystemStatisticsDto>(SystemStatisticsDto.class);
+		DtoContainer<SystemStatisticsDto> result =
+				new DtoContainer<SystemStatisticsDto>(SystemStatisticsDto.class);
 		contentHandler.fromString(output, result);
 		assertDtoEquals(expected, result.getSingle());
 	}
