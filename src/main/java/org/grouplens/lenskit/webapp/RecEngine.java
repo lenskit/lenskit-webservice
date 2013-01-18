@@ -4,6 +4,10 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Enumeration;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -138,5 +142,18 @@ public class RecEngine extends HttpServlet {
 	public void destroy() {
 		super.destroy();
 		session.close();
+		deregisterAllDrivers();
+	}
+	
+	private void deregisterAllDrivers() {
+		Enumeration<Driver> drivers = DriverManager.getDrivers();
+		while (drivers.hasMoreElements()) {
+			try {
+				DriverManager.deregisterDriver(drivers.nextElement());
+			} catch (SQLException e) {
+				// Ignore error and try to deregister other drivers
+				continue;
+			}
+		}
 	}
 }

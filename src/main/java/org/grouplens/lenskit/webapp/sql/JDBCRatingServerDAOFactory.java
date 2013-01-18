@@ -33,10 +33,6 @@ public class JDBCRatingServerDAOFactory extends JDBCRatingDAO.Factory {
 			dbc = DriverManager.getConnection(cxnUrl);
 			JDBCRatingServerDAO dao = new JDBCRatingServerDAO(new JDBCServerDataSession(dbc, factory), true);
 			boolean reloadEnabled = Boolean.valueOf(config.getProperty("rec.dao.reload-enabled", "false"));
-			String schemaScript = config.getProperty("rec.dao.schema");
-			if (schemaScript != null && reloadEnabled) {
-				RunScript.execute(cxnUrl, null, null, schemaScript, null, false);
-			}
 			String dataScript = config.getProperty("rec.dao.data");
 			if (dataScript != null && reloadEnabled) {
 				RunScript.execute(cxnUrl, null, null, dataScript, null, false);
