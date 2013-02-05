@@ -19,7 +19,7 @@ import org.junit.Test;
 
 public abstract class AbstractServerIntegrationTest {
 
-	private static final String URL_BASE = "http://localhost:8081/lenskit";
+	private static final String URL_BASE = "http://localhost:8080/lenskit";
 	protected String acceptHeader;
 	protected String contentType;
 	protected DtoContentHandler contentHandler;

@@ -15,8 +15,8 @@ import org.grouplens.lenskit.webapp.Session;
 import org.grouplens.lenskit.webapp.dto.EventDto;
 
 /**
- * A {@link RequestHandler} to service requests of the form
- * calling GET /events/[eid]
+ * A {@link RequestHandler} to service requests of the form:
+ * GET /events/[eid]
  */
 public class GetEventRequestHandler extends RequestHandler {
 

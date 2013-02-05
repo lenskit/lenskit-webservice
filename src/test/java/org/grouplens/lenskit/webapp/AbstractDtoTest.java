@@ -7,6 +7,7 @@ import org.grouplens.common.dto.Dto;
 import org.grouplens.common.dto.DtoContainer;
 import org.grouplens.common.dto.DtoContentHandler;
 import org.grouplens.lenskit.webapp.dto.EventDto;
+import org.grouplens.lenskit.webapp.dto.ItemDto;
 import org.grouplens.lenskit.webapp.dto.ItemEventsDto;
 import org.grouplens.lenskit.webapp.dto.ItemPurchasesDto;
 import org.grouplens.lenskit.webapp.dto.ItemRatingsDto;
@@ -57,7 +58,7 @@ public abstract class AbstractDtoTest {
 		expected.addPrediction("7890", 4.77);
 		DtoContainer<UserPredictionsDto> container =
 				new DtoContainer<UserPredictionsDto>(UserPredictionsDto.class, expected);
-		String output = contentHandler.toString(container);		
+		String output = contentHandler.toString(container);
 		DtoContainer<UserPredictionsDto> result =
 				new DtoContainer<UserPredictionsDto>(UserPredictionsDto.class);
 		contentHandler.fromString(output, result);
@@ -73,7 +74,7 @@ public abstract class AbstractDtoTest {
 		expected.addPreference("4567", "prediction", 1.75);
 		DtoContainer<UserPreferencesDto> container =
 				new DtoContainer<UserPreferencesDto>(UserPreferencesDto.class, expected);
-		String output = contentHandler.toString(container);		
+		String output = contentHandler.toString(container);
 		DtoContainer<UserPreferencesDto> result =
 				new DtoContainer<UserPreferencesDto>(UserPreferencesDto.class);
 		contentHandler.fromString(output, result);
@@ -89,7 +90,7 @@ public abstract class AbstractDtoTest {
 		expected.addRecommendation("4");
 		DtoContainer<UserRecommendationsDto> container =
 				new DtoContainer<UserRecommendationsDto>(UserRecommendationsDto.class, expected);
-		String output = contentHandler.toString(container);		
+		String output = contentHandler.toString(container);
 		DtoContainer<UserRecommendationsDto> result =
 				new DtoContainer<UserRecommendationsDto>(UserRecommendationsDto.class);
 		contentHandler.fromString(output, result);
@@ -147,6 +148,17 @@ public abstract class AbstractDtoTest {
 	}
 
 	@Test
+	public void testItemDto() throws Exception {
+		ItemDto expected = new ItemDto("516");
+		DtoContainer<ItemDto> container = new DtoContainer<ItemDto>(ItemDto.class, expected);
+		String output = contentHandler.toString(container);
+		System.out.println(output);
+		DtoContainer<ItemDto> result = new DtoContainer<ItemDto>(ItemDto.class);
+		contentHandler.fromString(output, result);
+		assertDtoEquals(expected, result.getSingle());
+	}
+	
+	@Test
 	public void testItemStatisticsDto() throws Exception {
 		ItemStatisticsDto expected = new ItemStatisticsDto("1024", 700, 600, 4.8);
 		DtoContainer<ItemStatisticsDto> container =
@@ -167,7 +179,7 @@ public abstract class AbstractDtoTest {
 		expected.addEvent("purchase", "0550", "987", 19000, "ddd");
 		DtoContainer<ItemEventsDto> container =
 				new DtoContainer<ItemEventsDto>(ItemEventsDto.class, expected);		
-		String output = contentHandler.toString(container);		
+		String output = contentHandler.toString(container);
 		DtoContainer<ItemEventsDto> result =
 				new DtoContainer<ItemEventsDto>(ItemEventsDto.class);
 		contentHandler.fromString(output, result);
@@ -212,7 +224,7 @@ public abstract class AbstractDtoTest {
 		EventDto expected = new EventDto("purchase", "0310", "516", "1024", 33000, "abcd");
 		DtoContainer<EventDto> container =
 				new DtoContainer<EventDto>(EventDto.class, expected);
-		String output = contentHandler.toString(container);		
+		String output = contentHandler.toString(container);
 		DtoContainer<EventDto> result = new DtoContainer<EventDto>(EventDto.class);
 		contentHandler.fromString(output, result);
 		assertDtoEquals(expected, result.getSingle());

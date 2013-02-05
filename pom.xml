@@ -107,7 +107,7 @@
 					<wait>false</wait>
 					<container>
 						<containerId>tomcat6x</containerId>
-						<home>${server.home}</home>
+						<home>${server.tomcat.home}</home>
 					</container>
 					<configuration>
 						<type>standalone</type>
@@ -147,11 +147,10 @@
 		</plugins>
 	</build>
 	<properties>
-		<data.path>/home/ugrad00/kolb/scratch/Resarch/lenskit/lenskit-webapp/h2Data</data.path>
 		<recommender.properties.path>/export/scratch/kolb/Research/lenskit-webapp/src/test/resources/recServer.properties</recommender.properties.path>
-		<server.port>8081</server.port>
+		<server.port>8080</server.port>
 		<server.context>lenskit</server.context>
-		<server.home>/export/scratch/kolb/tomcat6</server.home>
+		<server.tomcat.home>src/main/resources/tomcat6</server.tomcat.home>
 	</properties>
 	<packaging>war</packaging>
 		<profiles>
