@@ -40,4 +40,20 @@ public interface ServerSQLStatementFactory extends SQLStatementFactory {
 	 * @throws SQLException
 	 */
     PreparedStatement prepareEventRevId(Connection dbc) throws SQLException;
+    
+    /**
+     * Construct an SQL statement that will add a new item to an existing table.
+     * @param dbc The JDBC database connection.
+     * @return A <tt>PreparedStatement</tt> to add a new item.
+     * @throws SQLException
+     */
+    PreparedStatement prepareAddItem(Connection dbc) throws SQLException;
+    
+    /**
+     * Construct an SQL statement that will retrieve item metadata from an existing table.
+     * @param dbc The JDBC database connection.
+     * @return A <tt>PreparedStatement</tt> to retrieve item metadata.
+     * @throws SQLException
+     */
+    PreparedStatement prepareItemMetadata(Connection dbc) throws SQLException;
 }

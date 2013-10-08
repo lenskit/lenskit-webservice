@@ -8,6 +8,10 @@ public class ItemDto extends Dto {
 	
 	public String _revision_id;
 	
+	public String name;
+		
+	public String tags;
+	
 	public ItemDto() {}
 	
 	public ItemDto(String item_id) {

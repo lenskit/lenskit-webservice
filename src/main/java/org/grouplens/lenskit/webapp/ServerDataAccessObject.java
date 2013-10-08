@@ -10,7 +10,7 @@ public interface ServerDataAccessObject extends DataAccessObject {
 		
 	public void deleteUser(long userId);
 	
-	public void addItem(long itemId);
+	public void addItem(long itemId, String name, String tags, String revisionId);
 	
 	public void deleteItem(long itemId);
 	

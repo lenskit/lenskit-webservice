@@ -1,6 +1,7 @@
 package org.grouplens.lenskit.webapp.sql;
 
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,19 +10,25 @@ import java.util.UUID;
 
 import org.grouplens.lenskit.data.Event;
 import org.grouplens.lenskit.data.event.Rating;
+import org.grouplens.lenskit.data.sql.CachedPreparedStatement;
 import org.grouplens.lenskit.data.sql.JDBCRatingDAO;
 import org.grouplens.lenskit.webapp.ServerDataAccessObject;
 
 public class JDBCRatingServerDAO extends JDBCRatingDAO implements ServerDataAccessObject {
+	
+	private final CachedPreparedStatement prepareTableInitStatement;
+	private final CachedPreparedStatement addItemStatement;
+	private final CachedPreparedStatement deleteItemStatement;
+	private final CachedPreparedStatement addEventStatement;
+	private final CachedPreparedStatement deleteEventStatement;
+	private final CachedPreparedStatement getEventRevIdStatement;
+	
 
-	private JDBCServerDataSession session;
-
-	public JDBCRatingServerDAO(JDBCServerDataSession session, boolean ownsSession) {
-		super(session, ownsSession);
-		this.session = session;
+	public JDBCRatingServerDAO(Connection dbc, ServerSQLStatementFactory fac, boolean ownsSession) {
+		super(conn, fac, ownsSession);
 		try {
-			PreparedStatement ps = session.prepareTableInitStatement();
-			ps.execute();
+			connection = dbc;
+			
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -30,7 +37,6 @@ public class JDBCRatingServerDAO extends JDBCRatingDAO implements ServerDataAcce
 	@Override
 	public void addUser(long userId) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -40,8 +46,20 @@ public class JDBCRatingServerDAO extends JDBCRatingDAO implements ServerDataAcce
 	}
 
 	@Override
-	public void addItem(long itemId) {
-		// TODO Auto-generated method stub
+	public void addItem(long itemId, String name, String tags, String revisionId) {
+		try {
+			PreparedStatement ps = session.addItemStatement();
+			ps.setLong(BasicServerSQLStatementFactory.ITEM_TABLE_ID_COLUMN_INDEX, itemId);
+			ps.setString(BasicServerSQLStatementFactory.ITEM_TABLE_NAME_COLUMN_INDEX, name);
+			ps.setString(BasicServerSQLStatementFactory.ITEM_TABLE_TAG_COLUMN_INDEX, tags);
+			ps.setString(BasicServerSQLStatementFactory.ITEM_TABLE_REVISION_COLUMN_INDEX, revisionId);
+			
+			if (ps.executeUpdate() != 1) {
+				throw new SQLException("Error adding new item to database");
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 
 	}
 
@@ -57,16 +75,16 @@ public class JDBCRatingServerDAO extends JDBCRatingDAO implements ServerDataAcce
 			Rating r = (Rating)evt;
 			try {
 				PreparedStatement ps = session.addEventStatement();
-				ps.setLong(BasicServerSQLStatementFactory.ID_COLUMN_INDEX, r.getId());
-				ps.setLong(BasicServerSQLStatementFactory.USER_COLUMN_INDEX, r.getUserId());
-				ps.setLong(BasicServerSQLStatementFactory.ITEM_COLUMN_INDEX, r.getItemId());
+				ps.setLong(BasicServerSQLStatementFactory.EVENT_TABLE_ID_COLUMN_INDEX, r.getId());
+				ps.setLong(BasicServerSQLStatementFactory.EVENT_TABLE_USER_COLUMN_INDEX, r.getUserId());
+				ps.setLong(BasicServerSQLStatementFactory.EVENT_TABLE_ITEM_COLUMN_INDEX, r.getItemId());
 				if (r.getPreference() == null) {
-					ps.setNull(BasicServerSQLStatementFactory.RATING_COLUMN_INDEX, Types.DOUBLE);
+					ps.setNull(BasicServerSQLStatementFactory.EVENT_TABLE_RATING_COLUMN_INDEX, Types.DOUBLE);
 				} else {
-					ps.setDouble(BasicServerSQLStatementFactory.RATING_COLUMN_INDEX, r.getPreference().getValue());
+					ps.setDouble(BasicServerSQLStatementFactory.EVENT_TABLE_RATING_COLUMN_INDEX, r.getPreference().getValue());
 				}
-				ps.setLong(BasicServerSQLStatementFactory.TIMESTAMP_COLUMN_INDEX, r.getTimestamp());
-				ps.setString(BasicServerSQLStatementFactory.REVISION_COLUMN_INDEX, generateRevisionId());
+				ps.setLong(BasicServerSQLStatementFactory.EVENT_TABLE_TIMESTAMP_COLUMN_INDEX, r.getTimestamp());
+				ps.setString(BasicServerSQLStatementFactory.EVENT_TABLE_REVISION_COLUMN_INDEX, generateRevisionId());
 				if (ps.executeUpdate() != 1) {
 					throw new SQLException("Error Adding New Event to SQL Database");
 				}
@@ -106,7 +124,7 @@ public class JDBCRatingServerDAO extends JDBCRatingDAO implements ServerDataAcce
 	public String getEventRevId(long eventId) {
 		try {
 			PreparedStatement ps = session.getEventRevIdStatement();
-			ps.setLong(BasicServerSQLStatementFactory.ID_COLUMN_INDEX, eventId);
+			ps.setLong(BasicServerSQLStatementFactory.EVENT_TABLE_ID_COLUMN_INDEX, eventId);
 			ResultSet results = ps.executeQuery();
 			results.next();
 			String revId = results.getString(1);

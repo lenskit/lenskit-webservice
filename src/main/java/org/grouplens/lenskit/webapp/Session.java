@@ -35,9 +35,9 @@ public class Session implements Closeable {
 	 * item rating predictions and recommendations.
 	 */
 	public Session(LenskitRecommender recommender) {
-		DataAccessObject recommenderDao = recommender.getRatingDataAccessObject();
+		DataAccessObject recommenderDao = recommender.getDataAccessObject();
 		if (recommenderDao instanceof ServerDataAccessObject) {
-			dao = (ServerDataAccessObject)recommender.getRatingDataAccessObject();
+			dao = (ServerDataAccessObject)recommender.getDataAccessObject();
 		} else {
 			throw new RuntimeException("Recommender's DAO must be Server DAO");
 		}
